@@ -43,6 +43,9 @@ class Move(object):
     #TODO set certain values to not display unless user specifies
         # e.g. if the user WANTS "ladies chain across", wants
         # count displayed, etc.
+    #TODO support NEW ladies, NEXT neighbor, orig. neighbor, etc.
+        # but still searchable by "neighbor" etc.
+    #TODO invidid. move constructors can't deal with "count=4" etc...
     legal_values = \
         {"who": ["ladies", "gents", "partner", "neighbor", "shadow", None], \
         "hand": ["R", "L", None], \
@@ -212,6 +215,13 @@ reeleasy.A1 = movelist([Dosido("neighbor"), Swing("neighbor")])
 reeleasy.A2 = movelist([LongLines(), Allemande("ladies", "R", 1.5)])
 reeleasy.B1 = movelist([Swing("partner", True)])
 reeleasy.B2 = movelist([Circle(), Allemande("neighbor", "R", 1, "and pull by")])
+
+marycay = Dance("Mary Cay's Reel", "David Kaynor", "becket")
+marycay.A1 = movelist([Circle(moreinfo="and pass thru up & down"), Allemande("neighbor", "L", 1, "a new N")])
+marycay.A2 = movelist([Swing("neighbor", True, "orig. N")])
+marycay.B1 = movelist([LongLines(), Allemande("ladies", "R", 0.75),\
+    Allemande("ladies", "L", 0.75, "new lady")])
+marycay.B2 = movelist([Swing("partner", True)])
 
 """
 class mymove(Move):
