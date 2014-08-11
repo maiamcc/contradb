@@ -1,8 +1,19 @@
+class movelist(list):
+    """Adds a print method to a list for when the list contains Moves."""
+    def __str__(self):
+        # output = "\t" + str(self[0])
+        output = str(self[0])
+        for move in self[1:]:
+            output += "\n" + str(move)
+        return output
+    # want REPR to still return <> format
+
+
 class Dance(object):
     """Contains all of the information of a dance, including the move
     sequence and meta-data."""
 
-    def __init__(self, title, author, formation, A1, A2, B1, B2):
+    def __init__(self, title, author, formation, A1=None, A2=None, B1=None, B2=None):
         self.title = title
         self.author = author
         self.formation = formation
@@ -12,10 +23,15 @@ class Dance(object):
         self.B1 = B1
         self.B2 = B2
 
+    def __str__(self):
+        return "%s, by %s (%s)\n" % (self.title, self.author, self.formation) \
+            + "A1: " + str(self.A1) + "\n" \
+            + "A2: " + str(self.A2) + "\n" \
+            + "B1: " + str(self.B1) + "\n" \
+            + "B2: " + str(self.B2)
     def __repr__(self):
-        output = "%s, by %s (%s)" % (self.title, self.author, self.formation)
-        for move in self.moveslist:
-            output = output + "\n" + str(move)
+        return "<%s, %s, %s>" % (self.title, self.author, self.formation)
+
 
         return output
 
@@ -24,6 +40,9 @@ class Move(object):
     of individual moves."""
 
     #TODO would be cool if these values would autocomplete
+    #TODO set certain values to not display unless user specifies
+        # e.g. if the user WANTS "ladies chain across", wants
+        # count displayed, etc.
     legal_values = \
         {"who": ["ladies", "gents", "partner", "neighbor", "shadow", None], \
         "hand": ["R", "L", None], \
@@ -119,12 +138,84 @@ class Allemande(Move):
             count = %s, moreinfo = %s>" % (self.who, self.hand, self.dist, \
             self.count, self.moreinfo)
 
+class Dosido(Move):
+    def __init__(self, who, dist=1, moreinfo=None):
+        self.who = who
+        self.dist = dist
+        self.moreinfo = moreinfo
 
+    def __str__(self):
+        return "%s do-si-do %sx" % (self.who, self.dist) \
+            + self.if_more_info()
+
+    def __repr__(self):
+        return "<dosido: who = %s, dist = %s, count = %s, moreinfo = %s>" \
+            % (self.who, self.dist, self.count, self.moreinfo)
+
+# TODO: order of args here unideal
+class Gypsy(Move):
+    def __init__(self, who, dist, hand="R", moreinfo=None):
+        self.who = who
+        self.hand = hand
+        self.dist = dist
+        self.moreinfo = moreinfo
+
+    def __str__(self):
+        return "%s gypsy by the %s %sx" % (self.who, self.hand, self.dist) \
+            + self.if_more_info()
+
+    def __repr__(self):
+        return "<Gypsy: who = %s, hand = %s, dist = %s, \
+            count = %s, moreinfo = %s>" % (self.who, self.hand, self.dist, \
+            self.count, self.moreinfo)
+
+class Chain(Move):
+    def __init__(self, who="ladies", dir="across", moreinfo=None):
+        self.who = who
+        self.dir = dir
+        self.moreinfo = moreinfo
+
+    def __str__(self):
+        return "%s chain" % self.who + self.if_more_info()
+
+    def __repr__(self):
+        return "<chain: who = %s, dir = %s, count = %s, moreinfo = %s>" \
+            % (self.who, self.dir, self.count. self.moreinfo)
+
+class LongLines(Move):
+    def __init__(self, moreinfo=None):
+        self.moreinfo = moreinfo
+    def __str__(self):
+        return "long lines" + self.if_more_info()
+
+    def __repr__(self):
+        return "<long lines: count = %s, moreinfo = %s>" \
+            % (self.count, self.moreinfo)
+
+# Test dances
+# TODO make a better dance constructor (set sect -- give it sect.
+    # to fill in and the moves, makes a movelist out of them?)
+babyrose = Dance("The Baby Rose", "David Kaynor", "improper")
+babyrose.A1 = movelist([Swing("neighbor", True)])
+babyrose.A2 = movelist([Circle(), Dosido("partner", 1)])
+babyrose.B1 = movelist([Swing("partner", True)])
+babyrose.B2 = movelist([Chain(), Star()])
+
+ali = Dance("Ali's Safeway Produce", "Robert Cromartie", "improper")
+ali.A1 = movelist([Star(), Allemande("neighbor", "L", 1.5)])
+ali.A2 = movelist([Allemande("ladies", "R", 1.5), Swing("partner")])
+ali.B1 = movelist([Circle(), Swing("neighbor")])
+ali.B2 = movelist([LongLines(), Star("R", 1)])
+
+reeleasy = Dance("Reel Easy", "Cary Ravitz", "improper")
+reeleasy.A1 = movelist([Dosido("neighbor"), Swing("neighbor")])
+reeleasy.A2 = movelist([LongLines(), Allemande("ladies", "R", 1.5)])
+reeleasy.B1 = movelist([Swing("partner", True)])
+reeleasy.B2 = movelist([Circle(), Allemande("neighbor", "R", 1, "and pull by")])
 
 """
 class mymove(Move):
     def __init__(self, ... moreinfo=None):
-        pass
         self.moreinfo = moreinfo
 
     def __str__(self):

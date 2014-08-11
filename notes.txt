@@ -28,6 +28,8 @@ parameters (make uniform!)
 		orbits
 		yearn
 		seesaw
+		pull by
+		pass thru
 
 basic moves:
 	swing
