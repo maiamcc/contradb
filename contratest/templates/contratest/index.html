@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}My dance database{% endblock %}
+
+{% block misc %}
+{% for line in a_dance %}
+<p>{{ line }}</p>
+{% endfor %}
+{% endblock %}
+
+{% block dancetable %}
+{% for dance in my_dances %}
+    <tr>
+        <td>{{ dance.title }}</td>
+        <td>{{ dance.author }}</td>
+        <td>{{ dance.formation }}</td>
+        <td>{{ dance.progression }}</td>
+        <td>{{ dance.moves_string }}</td>
+        <td>{{ dance.tags }}</td>
+    </tr>
+
+{% endfor %}
+{% endblock %}
