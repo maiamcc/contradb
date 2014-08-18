@@ -28,8 +28,6 @@ def results(request):
                 query = query & q
             else:
                 query = q
-
-    # query = Q(**{"%s__exact" % "movename": "allemande"}) & Q(**{"%s__exact" % "hand": "L"})
     result_moves = Move.objects.filter(query)
     result_dances = []
     for move in result_moves:

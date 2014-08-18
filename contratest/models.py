@@ -7,7 +7,7 @@ class Dance(models.Model):
     progression = models.IntegerField(default=1)
     tags = models.CharField(max_length=200, blank=True)
 
-    @property
+    #@property
     def __unicode__(self):
         return "%s by %s (%s, %ix prog.)" % (self.title, self.author, self.formation, self.progression)
 
@@ -64,22 +64,22 @@ class Move(models.Model):
     WHO_CHOICES = (
         ("ladies", "ladies"),
         ("gents", "gents"),
-        ("P", "partner"),
-        ("N", "neighbor"),
-        ("shad", "shadow")
+        ("partner", "partner"),
+        ("neighbor", "neighbor"),
+        ("shadow", "shadow")
     )
 
     HAND_CHOICES = (
         ("L", "left"),
-        ("R", "right")
+        ("R", "right"),
     )
 
     DIR_CHOICES = (
+        ("L", "left"),
+        ("R", "right"),
         ("across", "across"),
         ("ldiag", "left diagonal"),
-        ("rdiag", "right diagonal"),
-        ("L", "left"),
-        ("R", "right")
+        ("rdiag", "right diagonal")
     )
 
     dance = models.ForeignKey(Dance)
