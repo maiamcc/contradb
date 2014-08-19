@@ -15,10 +15,11 @@ class Dance(models.Model):
 
     search_params = ["formation", "progression"]
 
-    @property
+
     def __unicode__(self):
         return "%s by %s (%s, %ix prog.)" % (self.title, self.author, self.formation, self.progression)
 
+    @property
     def pretty_print(self):
         """Prints a nicely formatted string rep. of the dance."""
         return "%s, by %s (%s)\n" % (self.title, self.author, self.formation) \

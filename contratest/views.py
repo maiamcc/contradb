@@ -53,7 +53,6 @@ def results(request):
         result_dances = []
         for move in moves_list:
             result_dances.append(move.dance)
-
         return list(set(result_dances))
 
     # make a list of all search terms as (arg, val_list) pairs
@@ -79,7 +78,7 @@ def results(request):
     first = find_first_move(move1)
     next = find_next_moves(first)
     matched = match_next_moves(next, move2)
-    dances =
+    dances = matched[0].dance
     #find_dances(matched)
 
     '''

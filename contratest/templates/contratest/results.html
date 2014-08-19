@@ -13,26 +13,15 @@ QUERY:
 {{ next }}</p>
 <p>Matched:
 {{ matched }}</p>
-<p>Final answer:
-{{ dances }}
-</p>
-
-<!--MOVES:
-{% for move in result_moves %}
-<p>{{move}}</p>
-{% endfor %}
-{% endblock %}-->
+{% endblock %}
 
 {% block dancetable %}
-{% for dance in dances %}
     <tr>
-        <td>{{ dance.title }}</td>
-        <td>{{ dance.author }}</td>
-        <td>{{ dance.formation }}</td>
-        <td>{{ dance.progression }}</td>
-        <td>{{ dance.moves_string }}</td>
-        <td>{{ dance.tags }}</td>
+        <td>{{ dances.title }}</td>
+        <td>{{ dances.author }}</td>
+        <td>{{ dances.formation }}</td>
+        <td>{{ dances.progression }}</td>
+        <td>{{ dances.moves_string }}</td>
+        <td>{{ dances.tags }}</td>
     </tr>
-
-{% endfor %}
 {% endblock %}
