@@ -7,8 +7,16 @@ QUERY:
 {% for pair in query %}
 <p>{{pair}}</p>
 {% endfor %}
-First:
-{{ first }}
+<p>First:
+{{ first }}</p>
+<p>Next:
+{{ next }}</p>
+<p>Matched:
+{{ matched }}</p>
+<p>Final answer:
+{{ dances }}
+</p>
+
 <!--MOVES:
 {% for move in result_moves %}
 <p>{{move}}</p>
@@ -16,7 +24,7 @@ First:
 {% endblock %}-->
 
 {% block dancetable %}
-{% for dance in result_dances %}
+{% for dance in dances %}
     <tr>
         <td>{{ dance.title }}</td>
         <td>{{ dance.author }}</td>

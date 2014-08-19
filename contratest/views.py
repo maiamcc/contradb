@@ -17,6 +17,9 @@ def search(request):
 
 def results(request):
 
+    def logic(x, argument, value):
+        return getattr(x, argument) == value
+
     def find_first_move(search_terms):
         """Given a set of search terms (a list of (argument, value)
             pairs), returns a list of all matching moves."""
@@ -30,14 +33,28 @@ def results(request):
                 move_query = q
             return Move.objects.filter(move_query)
 
-
     def find_next_moves(moves_list):
         results = []
         for move in moves_list:
-            results.append(Move.objects.filter(dance__exact=move.dance).filter(seq__exact=move.seq+1))
+            for x in Move.objects.filter(dance__exact=move.dance).filter(seq__exact=move.seq+1):
+                results.append(x)
+                # can i do this more cleanly? just appending = i appended lists rather than just the moves, and appending x for x in [[filter code]] made me generator objects. wuh?
         return results
 
-    #def match_move(search_terms, move_set):
+    def match_next_moves(moves_list, search_terms):
+        results = list(moves_list)
+        for arg, val in search_terms:
+            results = filter(lambda move: logic(move, arg, val), results)
+        return results
+
+    def find_dances(moves_list):
+        """Returns a list of dances to which moves in the
+            given moves_list belong (no duplicates)."""
+        result_dances = []
+        for move in moves_list:
+            result_dances.append(move.dance)
+
+        return list(set(result_dances))
 
     # make a list of all search terms as (arg, val_list) pairs
     all_search_terms = []
@@ -51,7 +68,8 @@ def results(request):
         temp_list = []
         for pair in all_search_terms:
             try:
-                temp_list.append((pair[0], pair[1][i]))
+                if pair[1][i] != u"":
+                    temp_list.append((pair[0], pair[1][i]))
             except IndexError:
                 pass
         search_terms_by_move.append(temp_list)
@@ -59,15 +77,11 @@ def results(request):
     move1 = search_terms_by_move[0]
     move2 = search_terms_by_move[1]
     first = find_first_move(move1)
-    # next = find_next_moves(first)
-    #result_moves = find_first_move(move_search_terms)
-    '''
-    result_dances = []
-    for move in result_moves:
-        result_dances.append(move.dance)
-    # list of dances containing specified move
-    result_dances = list(set(result_dances))
-    '''
+    next = find_next_moves(first)
+    matched = match_next_moves(next, move2)
+    dances =
+    #find_dances(matched)
+
     '''
     dance_search_terms = []
     for arg in Dance.search_params:
@@ -87,6 +101,5 @@ def results(request):
     # filter by dance attributes
     result_dances = result_dances.filter(dance_query)
     '''
-    # 'result_moves': result_moves,'result_dances': result_dances,
-    context = {"query": search_terms_by_move, "first": first}
+    context = {"query": search_terms_by_move, "first": first, "next": next, "matched": matched, "dances": dances}
     return render(request, 'contratest/results.html', context)
