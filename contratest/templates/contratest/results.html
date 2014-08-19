@@ -3,14 +3,17 @@
 {% block title %}My dance database{% endblock %}
 
 {% block misc %}
-{% for term in search_terms %}
-<p>{{term}}</p>
+QUERY:
+{% for pair in query %}
+<p>{{pair}}</p>
 {% endfor %}
-MOVES:
+First:
+{{ first }}
+<!--MOVES:
 {% for move in result_moves %}
 <p>{{move}}</p>
 {% endfor %}
-{% endblock %}
+{% endblock %}-->
 
 {% block dancetable %}
 {% for dance in result_dances %}

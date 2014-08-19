@@ -7,7 +7,9 @@
 <p>
 <form action="results" method="get">
     {% csrf_token %}
-    {{ form }}
+    <p>{{ form1 }}</p>
+    <p>{{ form2 }}</p>
+    <p>{{ danceform }}</p>
     <input type="submit" value="Submit" />
 </form>
 </p>

@@ -1,6 +1,7 @@
 from django import forms
 
 class EmptyChoiceField(forms.ChoiceField):
+    '''Subclass that adds an empty choice to the top of any dropdown choice menu.'''
     def __init__(self, choices=(), empty_label="---", required=True, widget=None, label=None,
                  initial=None, help_text=None, *args, **kwargs):
 

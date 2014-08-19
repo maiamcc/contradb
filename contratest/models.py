@@ -1,13 +1,21 @@
 from django.db import models
 
 class Dance(models.Model):
+    FORMATION_CHOICES = (
+        ("imp", "improper"),
+        ("becketcw", "becket CW"),
+        ("becketccw", "becket CCW"),
+    )
+
     title = models.CharField(max_length=200)
     author = models.CharField(max_length=200)
     formation = models.CharField(max_length=200, default="improper")
     progression = models.IntegerField(default=1)
     tags = models.CharField(max_length=200, blank=True)
 
-    #@property
+    search_params = ["formation", "progression"]
+
+    @property
     def __unicode__(self):
         return "%s by %s (%s, %ix prog.)" % (self.title, self.author, self.formation, self.progression)
 
