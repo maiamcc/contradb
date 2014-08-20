@@ -131,13 +131,16 @@ class Move(models.Model):
     ricochet = models.NullBooleanField(blank=True)
     hey_length = models.CharField(max_length=50, choices=HEY_LENGTH_CHOICES,
         default="", blank=True)
-    hey_length = models.CharField(max_length=50, choices=WAVE_LENGTH_CHOICES,
+    wave_length = models.CharField(max_length=50, choices=WAVE_LENGTH_CHOICES,
         default="", blank=True)
 
     params = ["dance", "seq", "sect", "movename", "who", "hand", "dist", "dir", "bal", "count", "moreinfo", "hands_across", "hey_length", "ricochet", "rollaway"]
 
     def __unicode__(self):
-        return self.print_specific() + self.print_moreinfo() + self.print_count()
+        if self.movename == "other":
+            return self.moreinfo
+        else:
+            return self.print_specific() + self.print_moreinfo() + self.print_count()
 
     def print_specific(self):
         if self.movename == "swing":
@@ -147,13 +150,32 @@ class Move(models.Model):
         elif self.movename == "star":
             return "%sstar %s %d places" % (self.print_if("hands_across", "hands across "), self.hand, self.dist)
         elif self.movename == "dosido":
-            return "%s do-si-do" % self.who + self.print_if("dist", "%sx")
+            return "%s do-si-do" % self.who + self.print_if("dist", " %sx")
         elif self.movename == "chain":
             return "%s chain" % self.who
         elif self.movename == "longlines":
             return "long lines" + self.print_if("rollaway", " with a rollaway")
         elif self.movename == "allemande":
             return "%s allemande %s %sx" % (self.who, self.hand, self.dist)
+        elif self.movename == "seesaw":
+            return "%s seesaw" % self.who + self.print_if("dist", " %sx")
+        elif self.movename == "hey":
+            return "%s hey, %s passing %s" % (self.hey_length, self.who, self.hand)
+        elif self.movename == "gypsy":
+            return "%s gypsy" % self.who + self.print_if("hand") + self.print_if("dist", " %sx")
+        elif self.movename == "rlthru":
+            return "R/L through" + self.print_if("dir")
+        elif self.movename == "petronella":
+            return "balance the ring and spin to the right"
+        elif self.movename == "pass_ocean":
+            return "pass the ocean"
+        elif self.movename == "yearn":
+            return "yearn"
+        elif self.movename == "wave":
+            return "in a %s wave, balance" % self.wave_length
+            # IS THIS THE BEST WAY TO STRUCTURE THIS??^
+        elif self.movename == "give_take":
+            return "give and take"
 
     #can be combined into print_if...?
     def print_moreinfo(self):
@@ -167,7 +189,7 @@ class Move(models.Model):
         # eventually should have option for printing all vs. printing only weird
         return " (%d)" % self.count
 
-    def print_if(self, arg, in_string="%s", except_for=None):
+    def print_if(self, arg, in_string=" %s", except_for=None):
         """If the given arg has a value, print it in the given string
             format (except for values given in "except_for")."""
         if getattr(self, arg) not in [None, "", except_for, False]:
