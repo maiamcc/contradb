@@ -75,7 +75,9 @@ class Move(models.Model):
         ("pass_ocean", "pass the ocean"),
         ("yearn", "yearn"),
         ("wave", "wave"),
-        ("give_take", "give_and_take"),
+        ("give_take", "give and take"),
+        ("promenade", "promenade"),
+        ("down_hall", "down the hall"), # ASSUMING DOWN HALL --> COME BACK!
         ("other", "other")
     )
 
@@ -110,6 +112,11 @@ class Move(models.Model):
         ("long", "long")
     )
 
+    TURN_HOW_CHOICES = (
+        ("alone", "alone"),
+        ("couple", "as a couple")
+    )
+
     dance = models.ForeignKey(Dance)
     seq = models.IntegerField(null=True) # how do i increment?
     sect = models.CharField(max_length=2, choices=SECT_CHOICES,
@@ -126,6 +133,7 @@ class Move(models.Model):
     bal = models.NullBooleanField(null=True)
     count = models.IntegerField(default=8, null=True)
     moreinfo = models.CharField(max_length=300, default="", blank=True)
+    beginning_info = models.CharField(max_length=300, default="", blank=True)
     hands_across = models.NullBooleanField(blank=True)
     rollaway = models.NullBooleanField(blank=True)
     ricochet = models.NullBooleanField(blank=True)
@@ -133,14 +141,16 @@ class Move(models.Model):
         default="", blank=True)
     wave_length = models.CharField(max_length=50, choices=WAVE_LENGTH_CHOICES,
         default="", blank=True)
+    turn_how = models.CharField(max_length=50, choices=TURN_HOW_CHOICES,
+        default="", blank=True)
 
-    params = ["dance", "seq", "sect", "movename", "who", "hand", "dist", "dir", "bal", "count", "moreinfo", "hands_across", "hey_length", "ricochet", "rollaway"]
+    params = ["dance", "seq", "sect", "movename", "who", "hand", "dist", "dir", "bal", "count", "moreinfo", "beginning_info", "hands_across", "hey_length", "ricochet", "rollaway", "turn_how"]
 
     def __unicode__(self):
         if self.movename == "other":
             return self.moreinfo
         else:
-            return self.print_specific() + self.print_moreinfo() + self.print_count()
+            return self.print_if("beginning_info", "%s ") + self.print_specific() + self.print_moreinfo() + self.print_count()
 
     def print_specific(self):
         if self.movename == "swing":
@@ -176,6 +186,10 @@ class Move(models.Model):
             # IS THIS THE BEST WAY TO STRUCTURE THIS??^
         elif self.movename == "give_take":
             return "give and take"
+        elif self.movename == "promenade":
+            return "promenade" + self.print_if("dir")
+        elif self.movename == "down_hall":
+            return "down the hall; turn %s and come back" % self.turn_how
 
     #can be combined into print_if...?
     def print_moreinfo(self):
