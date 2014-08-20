@@ -12,14 +12,13 @@ class Dance(models.Model):
     formation = models.CharField(max_length=200, default="improper")
     progression = models.IntegerField(default=1)
     tags = models.CharField(max_length=200, blank=True)
+    begins = models.CharField(max_length=200, null=True, blank=True)
 
     search_params = ["formation", "progression"]
-
 
     def __unicode__(self):
         return "%s by %s (%s, %ix prog.)" % (self.title, self.author, self.formation, self.progression)
 
-    @property
     def pretty_print(self):
         """Prints a nicely formatted string rep. of the dance."""
         return "%s, by %s (%s)\n" % (self.title, self.author, self.formation) \
@@ -68,6 +67,16 @@ class Move(models.Model):
         ("chain", "chain"),
         ("longlines", "long lines"),
         ("allemande", "allemande"),
+        ("seesaw", "seesaw"),
+        ("hey", "hey"),
+        ("gypsy", "gypsy"),
+        ("rlthru", "R/L through"),
+        ("petronella", "petronella"),
+        ("pass_ocean", "pass the ocean"),
+        ("yearn", "yearn"),
+        ("wave", "wave"),
+        ("give_take", "give_and_take"),
+        ("other", "other")
     )
 
     WHO_CHOICES = (
@@ -91,6 +100,16 @@ class Move(models.Model):
         ("rdiag", "right diagonal")
     )
 
+    HEY_LENGTH_CHOICES = (
+        ("half", "half"),
+        ("full", "full")
+    )
+
+    WAVE_LENGTH_CHOICES = (
+        ("short", "short"),
+        ("long", "long")
+    )
+
     dance = models.ForeignKey(Dance)
     seq = models.IntegerField(null=True) # how do i increment?
     sect = models.CharField(max_length=2, choices=SECT_CHOICES,
@@ -107,36 +126,36 @@ class Move(models.Model):
     bal = models.NullBooleanField(null=True)
     count = models.IntegerField(default=8, null=True)
     moreinfo = models.CharField(max_length=300, default="", blank=True)
+    hands_across = models.NullBooleanField(blank=True)
+    rollaway = models.NullBooleanField(blank=True)
+    ricochet = models.NullBooleanField(blank=True)
+    hey_length = models.CharField(max_length=50, choices=HEY_LENGTH_CHOICES,
+        default="", blank=True)
+    hey_length = models.CharField(max_length=50, choices=WAVE_LENGTH_CHOICES,
+        default="", blank=True)
 
-    params = ["dance", "seq", "sect", "movename", "who", "hand", "dist", "dir", "bal", "count", "moreinfo"]
+    params = ["dance", "seq", "sect", "movename", "who", "hand", "dist", "dir", "bal", "count", "moreinfo", "hands_across", "hey_length", "ricochet", "rollaway"]
 
     def __unicode__(self):
-        if self.movename == "swing":
-            if self.bal:
-                return "%s balance and swing" % self.who + \
-                    self.print_moreinfo() + self.print_count()
-            else:
-                return "%s swing" % self.who + self.print_moreinfo() \
-                    + self.print_count()
-        elif self.movename == "circle":
-            return "circle %s %s places" % (self.dir, self.dist) \
-                + self.print_moreinfo() + self.print_count()
-        elif self.movename == "star":
-            return "star %s %d places" % (self.hand, self.dist) \
-                + self.print_moreinfo() + self.print_count()
-        elif self.movename == "dosido":
-            return "%s do-si-do %sx" % (self.who, self.dist) \
-                + self.print_moreinfo() + self.print_count()
-        elif self.movename == "chain":
-            return "%s chain" % self.who + self.print_moreinfo() \
-                + self.print_count()
-        elif self.movename == "longlines":
-            return "long lines" + self.print_moreinfo() + \
-                self.print_count()
-        elif self.movename == "allemande":
-            return "%s allemande %s %sx" % (self.who, self.hand, \
-                self.dist) + self.print_moreinfo() + self.print_count()
+        return self.print_specific() + self.print_moreinfo() + self.print_count()
 
+    def print_specific(self):
+        if self.movename == "swing":
+            return "%s%s swing" % (self.who, self.print_if("bal", " balance and"))
+        elif self.movename == "circle":
+            return "circle %s %s places" % (self.dir, self.dist)
+        elif self.movename == "star":
+            return "%sstar %s %d places" % (self.print_if("hands_across", "hands across "), self.hand, self.dist)
+        elif self.movename == "dosido":
+            return "%s do-si-do" % self.who + self.print_if("dist", "%sx")
+        elif self.movename == "chain":
+            return "%s chain" % self.who
+        elif self.movename == "longlines":
+            return "long lines" + self.print_if("rollaway", " with a rollaway")
+        elif self.movename == "allemande":
+            return "%s allemande %s %sx" % (self.who, self.hand, self.dist)
+
+    #can be combined into print_if...?
     def print_moreinfo(self):
         if self.moreinfo:
             return " (%s)" % self.moreinfo
@@ -148,12 +167,13 @@ class Move(models.Model):
         # eventually should have option for printing all vs. printing only weird
         return " (%d)" % self.count
 
-    ''' FIX THIS LATER!
     def print_if(self, arg, in_string="%s", except_for=None):
         """If the given arg has a value, print it in the given string
             format (except for values given in "except_for")."""
-        if self.arg != except_for:
-            return in_string % self.arg
+        if getattr(self, arg) not in [None, "", except_for, False]:
+            if in_string.find("%s") > -1:
+                return in_string % getattr(self, arg)
+            else:
+                return in_string
         else:
-            return
-    '''
+            return ""

@@ -2,26 +2,16 @@
 
 {% block title %}My dance database{% endblock %}
 
-{% block misc %}
-QUERY:
-{% for pair in query %}
-<p>{{pair}}</p>
-{% endfor %}
-<p>First:
-{{ first }}</p>
-<p>Next:
-{{ next }}</p>
-<p>Matched:
-{{ matched }}</p>
-{% endblock %}
-
 {% block dancetable %}
+{% for dance in dances %}
     <tr>
-        <td>{{ dances.title }}</td>
-        <td>{{ dances.author }}</td>
-        <td>{{ dances.formation }}</td>
-        <td>{{ dances.progression }}</td>
-        <td>{{ dances.moves_string }}</td>
-        <td>{{ dances.tags }}</td>
+        <td>{{ dance.title }}</td>
+        <td>{{ dance.author }}</td>
+        <td>{{ dance.formation }}</td>
+        <td>{{ dance.progression }}</td>
+        <td>{{ dance.moves_string }}</td>
+        <td>{{ dance.tags }}</td>
     </tr>
+
+{% endfor %}
 {% endblock %}
