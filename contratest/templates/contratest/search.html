@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}My dance database{% endblock %}
+
+{% block misc %}
+<p>This is some stuff!</p>
+<p>
+<form action="results" method="get">
+    {% csrf_token %}
+    <p>{{ form1 }}</p>
+    <p>{{ form2 }}</p>
+    <p>{{ danceform }}</p>
+    <input type="submit" value="Submit" />
+</form>
+</p>
+{% endblock %}

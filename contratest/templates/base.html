@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="http://cdn.datatables.net/1.10.2/css/jquery.dataTables.css">
+
+    <!-- jQuery -->
+    <script type="text/javascript" charset="utf8" src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+
+    <!-- DataTables -->
+    <script type="text/javascript" charset="utf8" src="http://cdn.datatables.net/1.10.2/js/jquery.dataTables.js"></script>
+
+    <script type="text/javascript" class="init">
+        $(document).ready(function() {
+        $('#example').dataTable();
+    } );
+    </script>
+</head>
+
+<h1>
+    {% block title %}My amazing site{% endblock %}
+</h1>
+    {% block misc %}Yo.{% endblock %}
+<body>
+    <div id="content">
+    <table id="example" class="display">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Formation</th>
+                <th>Progression</th>
+                <th>Moves</th>
+                <th>Tags</th>
+            </tr>
+        </thead>
+
+        <tfoot>
+            <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Formation</th>
+                <th>Progression</th>
+                <th>Moves</th>
+                <th>Tags</th>
+            </tr>
+        </tfoot>
+
+        <tbody>
+            {% block dancetable %}
+            {% endblock %}
+        </tbody>
+    </table>
+    </div>
+</body>
+</html>
