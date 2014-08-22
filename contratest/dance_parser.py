@@ -7,6 +7,14 @@ import re
 # sect, seq automatically
 # lowercase
 
+def parse_dance(filename):
+    text = file_to_string("contratest/babyrose.txt")
+    dance_list = break_input(text)
+    dance = make_dance(dance_list[0])
+    dance.save()
+    clean_moves = clean_moves_list(dance_list[1:])
+    make_all_moves(clean_moves_list, dance)
+
 def file_to_string(filename):
     with open(filename) as infile:
         text = infile.read()
