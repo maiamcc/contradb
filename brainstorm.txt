@@ -1,0 +1,47 @@
+Swing
+	who = partner, neighbor, shadow
+	balance = false
+	count = 8
+		if balance true and no count passed, count = 16
+
+	print:
+		if balance:
+			[who] balance and swing
+		else:
+			[who] swing
+Circle
+	dir = left, right
+	dist = 1 2 3 4 (5, 6...)
+
+	print: circle [dir] [dist] places
+
+Star
+	dir = left, right
+	dist = 1 2 3 4 (5, 6...)
+
+	print: star by the [dir] [dist] places
+
+Allemande
+	who; hand; dist
+
+	print: [who] allemande [hand] [dist]x
+
+Do-si-do
+	[who] do-si-do [dist]x
+
+Gypsy
+	[who] gypsy [hand] ([dist]) <-- shouldn't always be displayed
+
+chain
+	[who] chain ([dir]) <-- tag if displayed
+
+R/L through
+	(with [who],) R/L thru ([dir])
+
+Hey
+	[hey_length], [who] passing [hand]
+
+Petronella
+	Balance the ring and spin right
+
+Down the hall

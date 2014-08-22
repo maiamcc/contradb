@@ -1,0 +1,66 @@
+Dance
+	title
+	author
+	notes
+	A1, A2, B1, B2
+	print method
+
+Moves (does this even need to be a super-class?)
+
+parameters (make uniform!)
+	who = ladies, gents, partner, neighbor, shadow
+	hand/shoulder = R/L
+	dist = 1, 2, 3, 4 (5, 6...) (circle), .5, 1, 1.5... .75, 1.25, etc.
+	dir = across, ldiag, rdiag
+	balance = True/False
+	count = 8, 16, etc.
+	hey_length = full, half
+	rollaway = True/False
+		rollawaywho = neighbor, partner, shadow, etc.
+		rollawayorder = l_roll_g, g_roll_l
+	xtrainfo
+
+	features to add later:
+		ricochet hey
+		roll away
+		slide left
+		balance the wave and... (dir of balance)
+		orbits
+		yearn
+		seesaw
+		pull by
+		pass thru
+
+basic moves:
+	swing
+	circle
+	star
+	allemande
+	do-si-do
+	gypsy
+	hey
+	chain
+	petronella
+
+list accepted values for all params.
+should return errors if you try to set any attributes that they dont have!
+tag attributes whether they should be displayed
+
+----- top level struct
+
+do I want separate constructor functions for moves? e.g. with really common stuff like "ladies chain" is almost always ladies...?
+
+to search:
+able to search different fields, e.g. title, author, notes
+to search:
+	index by 2-move groups?
+	cache
+
+TAGS
+	smooth
+	flirty
+	energy
+	beginners
+	opener
+	closer
+	no-walk
