@@ -1,11 +1,8 @@
 from contratest.models import Dance, Move
 import re
 
-# break into lines
-# get metadata from line 1
-# individual lines, break into sub-lists (split on ;)
-# sect, seq automatically
-# lowercase
+# TODO: counts
+# TODO: extra info
 
 def parse_dance(filename):
     text = file_to_string("contratest/babyrose.txt")
@@ -13,24 +10,32 @@ def parse_dance(filename):
     dance = make_dance(dance_list[0])
     dance.save()
     clean_moves = clean_moves_list(dance_list[1:])
-    make_all_moves(clean_moves_list, dance)
+    make_all_moves(clean_moves, dance)
 
 def file_to_string(filename):
+    """Reads a text file containing a dance."""
     with open(filename) as infile:
         text = infile.read()
     return text
 
 def break_input(input):
+    """Splits input by new-line."""
     return input.split("\n")
 
 def make_dance(dance_string):
+    """Makes a Dance object by parsing the title/author/formation
+        information in the first line of the dance."""
     dance_info = re.search('(.*) by (.*) [(](.*)[)]', dance_string)
     title = dance_info.group(1)
     author = dance_info.group(2)
     formation = dance_info.group(3)
+    # Missing: progression
     return Dance(title=title, author=author, formation=formation)
 
 def clean_moves_list(moves_list):
+    """Given a list containing all of the lines from the dance
+        (some of which may contain more than one move), makes a
+        nested list of the moves in each section, splitting on ';'"""
     newlist = []
     for element in moves_list:
 
@@ -40,13 +45,19 @@ def clean_moves_list(moves_list):
     return newlist
 
 def make_move(move_string, dance, sect_no, seq_no):
+    """Given a string representing a single move, makes a Move
+        object. Expects the string, the dance to which the move
+        belongs, an int indicating the section (1=A1, 2=A2, etc.)
+        and an int indicating place in the dance sequence."""
     new_move = Move(dance=dance, seq=seq_no, sect=sect_dict[sect_no])
-    new_move.movename = get_movename(move_string)
+    new_move.movename = use_parser(move_string, parse_movename, ask="What's the value of 'movename'?")
     for attr in expected_values[new_move.movename]:
-        setattr(new_move, attr, functions[attr](move_string, new_move.movename))
+        setattr(new_move, attr, parser_lookup(move_string, attr, new_move.movename))
     return new_move
 
 def make_all_moves(moves_list, dance):
+    """Given a nested list of all of the moves in a dance (in lists
+        based on section), makes all into Move objects."""
     sect_counter = 1
     move_counter = 1
     for sect_list in moves_list:
@@ -55,69 +66,206 @@ def make_all_moves(moves_list, dance):
             move_counter += 1
         sect_counter +=1
 
+def parser_lookup(input, attr, movename):
+    if attr == "who":
+        if movename != "chain":
+            return use_parser(input, parse_who, ask="What's the value of 'who'?")
+        else:
+            return use_parser(input, parse_who, default="ladies")
+    elif attr == "bal":
+        return use_parser(input, parse_bal, default=False)
+    elif attr == "dir":
+        if movename != "chain":
+            return use_parser(input, parse_dir, ask="What's the value of 'dir'?")
+        else:
+            return use_parser(input, parse_bal, default="across")
+    elif attr == "dist":
+        if movename in ["circle", "star"]:
+            return use_parser(input, parse_dist_whole, ask="What's the value of 'dist'? Please input in whole number of places, e.g. 'circle L 3/4' --> '3'.)")
+        elif movename == "allemande":
+            use_parser(input, parse_dist_whole, ask="What's the value of 'dist'? Please input as a decimal.")
+        elif movename in ["dosido", "gypsy", "seesaw"]:
+            use_parser(input, parse_dist_whole, default=None)
+    elif attr == "hand":
+        return use_parser(input, parse_hand, ask="What's the value of 'hand'?")
+    elif attr == "hands_across":
+        return use_parser(input, parse_hands_across, default=False)
 
-def get_movename(move_string):
-    attempt = get_any(move_string, movename_dict)
+# Making parsers
+def one_of(parsers, ask=None, default=None):
+    def parser(input):
+        for p in parsers:
+            result = p(input)
+            if result:
+                return result
+        # if ask:
+        #     return raw_input(ask + "\n(Input was: %s)\n> " % input)
+        # else:
+        #     return default
+    return parser
+
+def use_parser(input, parser, ask=None, default=None):
+    result = parser(input)
+    if result:
+        return result
+    elif ask:
+        return raw_input(ask + "\n(Input was: %s)\n> " % input)
+    else:
+        return default
+
+# TODO: check that raw input is valid?
+
+# Distances
+
+def dist_whole_place(input):
+    m = re.search('([1-6]) place', input)
+    if m:
+        return int(m.group(1))
+    else:
+        return
+
+def dist_whole_fract(input):
+    # should be able to search for unicode fract chars...
+    m = re.search('([1-9])/([1-9])', input)
+    if m:
+        n = re.search('[1-9] [1-9]/[1-9]', input)
+        if n:
+            if n.group() == "1 1/4":
+                return 5
+            elif n.group() == "1 1/2":
+                return 6
+        else:
+            if m.group(2) == "4":
+                return int(m.group(1))
+            elif m.group(1) == "1" and m.group(2) == "2":
+                return 2
+    else:
+        return
+
+def dist_whole_text(input):
+    if input.find("once") > -1:
+        return 4
+    elif input.find("half") > -1:
+        return 2
+    elif input.find("all the way") > -1:
+        return 4
+    elif input.find("1x") > -1:
+        return 4
+    else:
+        return
+
+dist_whole_parserlist = [dist_whole_place, dist_whole_fract, dist_whole_text]
+parse_dist_whole = one_of(dist_whole_parserlist)
+
+def dist_dec_fract(input):
+    # should be able to search for unicode fract chars...
+    m = re.search('([1-9])/([1-9])', input)
+    if m:
+        result = ""
+        n = re.search('([1-9]) [1-9]/[1-9]', input)
+        if n:
+            result += n.group(1)
+
+        if m.group(1) == "1" and m.group(2) == "2":
+            result += ".5"
+        elif m.group(2) == "4":
+            if m.group(1) == "1":
+                result += ".25"
+
+            elif m.group(1) == "3":
+                result += ".75"
+
+        return float(result)
+    else:
+        return
+
+def dist_dec_text(input):
+    if re.search('once.*half', input):
+        return 1.5
+    elif input.find("once") > -1:
+        return 1
+    elif input.find("1x") > -1:
+        return 1
+    elif input.find("half") > -1:
+        return 0.5
+    else:
+        return
+
+def dist_dec_decimal(input):
+    m = re.search('[1-9]\.[1-9]', input)
+    if m:
+        return float(m.group())
+    else:
+        return
+
+dist_dec_parserlist = [dist_dec_fract, dist_dec_text, dist_dec_decimal]
+parse_dist_dec = one_of(dist_dec_parserlist)
+# diff defaults for circle, star, etc.
+
+def parse_movename(input):
+    attempt = get_any(input, movename_dict)
     if attempt:
         return attempt
     else:
-        return raw_input("I can't tell; what move is this?\n(Input was: %s)\n>" % move_string)
+        return
 
-def get_bal(move_string, movename):
+def parse_bal(move_string):
     attempt = get_any(move_string, bal_dict)
     if attempt:
         return attempt
     else:
-        return False
+        return
 
-def get_dir(move_string, movename):
-    if movename in ["circle"]:
-        attempt = get_any(move_string, dir_dict_simple)
-        default = "L"
-    elif movename in ["promenade", "rlthru", "chain"]:
-        attempt = get_any(move_string, dir_dict_complex)
-        default = "across"
+# Direction
+def dir_set(input):
+    if input.find("across") > -1:
+        return "across"
+    elif input.find("l diag") > -1:
+        return "ldiag"
+    elif input.find("ldiag") > -1:
+        return "ldiag"
+    elif input.find("r diag") > -1:
+        return "rdiag"
+    elif input.find("rdiag") > -1:
+        return "rdiag"
+    else:
+        return
+
+def dir_ring(input):
+    if input.find(" l ") > -1:
+        return "L"
+    elif input.find("left") > -1:
+        return "L"
+    elif input.find(" r ") > -1:
+        return "R"
+    elif input.find("right") > -1:
+        return "R"
+    else:
+        return
+
+dir_parserlist = [dir_set, dir_ring]
+parse_dir = one_of(dir_parserlist)
+
+def parse_who(input):
+    attempt = get_any(input, who_dict)
     if attempt:
         return attempt
     else:
-        return default
+        return
 
-def get_dist(move_string, movename):
-    if movename in ["circle", "star"]:
-        attempt = get_any(move_string, dist_dict_simple)
-        default = 4
-    elif movename in ["allemande", "dosido", "gypsy", "seesaw"]:
-        attempt = get_any(move_string, dist_dict_complex)
-        default = None
-    if attempt:
-        return attempt
-    else:
-        return default
-
-def get_who(move_string, movename):
-    attempt = get_any(move_string, who_dict)
-    if attempt:
-        return attempt
-    else:
-        if movename in ["chain"]:
-            return "ladies"
-        else:
-            return raw_input("I can't tell; what is the value of 'who'?\n(Input was: %s)\n>" % move_string)
-
-def get_hand(move_string, movename):
+def parse_hand(move_string):
     attempt = get_any(move_string, hand_dict)
     if attempt:
         return attempt
     else:
-        return raw_input("I can't tell; what is the value of 'hand'?\n(Input was: %s)\n>" % move_string)
+        return
 
-def get_hands_across(move_string, movename):
+def parse_hands_across(move_string):
     attempt = get_any(move_string, hands_across_dict)
     if attempt:
         return attempt
     else:
-        return None #...should this return false instead?
-
+        return
 
 def get_any(move_string, dict):
     for key in dict.keys():
@@ -163,54 +311,13 @@ bal_dict = {
     "no bal": False
 }
 
-dist_dict_simple = {
-    "1 place": 1,
-    "2 place": 2,
-    "3 place": 3,
-    "4 place": 4,
-    "5 place": 5,
-    "6 place": 6,
-    "1x": 4,
-    "once": 4,
-    "half": 2,
-    "1 1/4": 5,
-    "1 1/2": 6, #this won't ever ping b/c 1/2 is in dict too
-    "1/2": 2,
-    "3/4": 3
-    # what about 3/4 as unicode fract, etc.?
-}
-
-dist_dict_complex = {
-    "1x": 1,
-    "3/4": 0.75, #assuming I'll never see a 1 3/4 alle<FIX THIS!
-    "1 1/4": 1.25,
-    "1 1/2": 1.5, #assuming I'll never see just a half alle
-    "once": 1,
-    "1.5": 1.5,
-    "1.5": 1.5
-
-}
-
-dir_dict_simple = {
-    " l ": "L",
-    "left": "L",
-    " r ": "R",
-    "right": "R"
-}
-
-dir_dict_complex = {
-    "across": "across",
-    "l diag": "ldiag",
-    "ldiag": "ldiag",
-    "r diag": "rdiag",
-    "rdiag": "rdiag"
-}
-
 hand_dict = {
     " l ": "L",
+    "l hand": "L",
     "left": "L",
     "lh": "L",
     " r ": "R",
+    "r hand": "R",
     "right": "R",
     "rh": "R"
 }
@@ -220,14 +327,13 @@ who_dict = {
     "woman": "ladies",
     "gents": "gents",
     "men": "men",
-    "n ": "neighbor",
-    "ns": "neighbor",
+    " n ": "neighbor",
+    " ns ": "neighbor",
     "neighbor": "neighbor",
-    "P ": "partner",
-    "ps": "partner",
-    "partner": "partner",
+    " P ": "partner",
+    " ps ": "partner",
+    "part": "partner",
     "shad": "shadow",
-    "shadow": "shadow"
 }
 
 hands_across_dict = {
@@ -256,19 +362,4 @@ expected_values = {
     "promenade": ["dir"],
     "down_hall": ["turn_how"],
     "other": []}
-
-dicts_by_attr = {
-    "movename": movename_dict,
-    "who": who_dict,
-    "bal": bal_dict,
-}
-
-functions = {
-    "who": get_who,
-    "bal": get_bal,
-    "dir": get_dir,
-    "dist": get_dist,
-    "hand": get_hand,
-    "hands_across": get_hands_across
-}
 # http://www.cotellese.net/2007/09/27/running-external-scripts-against-django-models/
