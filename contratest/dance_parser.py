@@ -1,7 +1,7 @@
 from contratest.models import Dance, Move
 import re
 
-# TODO: counts
+# TODO: count
 # TODO: extra info
 
 def parse_dance(filename):
@@ -44,13 +44,18 @@ def clean_moves_list(moves_list):
 
     return newlist
 
-def make_move(move_string, dance, sect_no, seq_no):
+def make_move(move_string, dance, sect_no, seq_no, count=None):
     """Given a string representing a single move, makes a Move
         object. Expects the string, the dance to which the move
         belongs, an int indicating the section (1=A1, 2=A2, etc.)
         and an int indicating place in the dance sequence."""
     new_move = Move(dance=dance, seq=seq_no, sect=sect_dict[sect_no])
     new_move.movename = use_parser(move_string, parse_movename, ask="What's the value of 'movename'?")
+    if count:
+        new_move.count = count
+    else:
+        new_move.count = use_parser(move_string, parse_count, default=8)
+
     for attr in expected_values[new_move.movename]:
         setattr(new_move, attr, parser_lookup(move_string, attr, new_move.movename))
     return new_move
@@ -62,7 +67,11 @@ def make_all_moves(moves_list, dance):
     move_counter = 1
     for sect_list in moves_list:
         for move in sect_list:
-            dance.move_set.add(make_move(move, dance, sect_counter, move_counter))
+            if len(sect_list) == 1:
+                count = 16
+            else:
+                count = None
+            dance.move_set.add(make_move(move, dance, sect_counter, move_counter, count))
             move_counter += 1
         sect_counter +=1
 
@@ -83,9 +92,10 @@ def parser_lookup(input, attr, movename):
         if movename in ["circle", "star"]:
             return use_parser(input, parse_dist_whole, ask="What's the value of 'dist'? Please input in whole number of places, e.g. 'circle L 3/4' --> '3'.)")
         elif movename == "allemande":
-            use_parser(input, parse_dist_whole, ask="What's the value of 'dist'? Please input as a decimal.")
+            print "This is an alle!"
+            use_parser(input, parse_dist_dec, ask="What's the value of 'dist'? Please input as a decimal.")
         elif movename in ["dosido", "gypsy", "seesaw"]:
-            use_parser(input, parse_dist_whole, default=None)
+            use_parser(input, parse_dist_dec, default=None)
     elif attr == "hand":
         return use_parser(input, parse_hand, ask="What's the value of 'hand'?")
     elif attr == "hands_across":
@@ -98,10 +108,6 @@ def one_of(parsers, ask=None, default=None):
             result = p(input)
             if result:
                 return result
-        # if ask:
-        #     return raw_input(ask + "\n(Input was: %s)\n> " % input)
-        # else:
-        #     return default
     return parser
 
 def use_parser(input, parser, ask=None, default=None):
@@ -114,6 +120,15 @@ def use_parser(input, parser, ask=None, default=None):
         return default
 
 # TODO: check that raw input is valid?
+
+# Count
+
+def parse_count(input):
+    m = re.search('\(([1-9]+)\)', input)
+    if m:
+        return int(m.group(1))
+    else:
+        return
 
 # Distances
 
@@ -322,6 +337,8 @@ hand_dict = {
     "rh": "R"
 }
 
+# can't be "TO PARTNER" etc...
+# also what about multiple things mentioned in same move line? e.g. "half hey, ladies pass R, gents ricochet over L"
 who_dict = {
     "ladies": "ladies",
     "woman": "ladies",
