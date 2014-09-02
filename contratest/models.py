@@ -27,6 +27,12 @@ class Dance(models.Model):
             + "B1: " + "\n".join(map(str, self.get_sect("B1"))) + "\n" \
             + "B2: " + "\n".join(map(str, self.get_sect("B2")))
 
+    def pretty_print_json(self):
+        return "<em>%s, by %s (%s)</em><br>" % (self.title, self.author, self.formation) \
+            + "<em>A1:</em> " + "<br>".join(map(str, self.get_sect("A1"))) + "<br>" \
+            + "<em>A2</em>: " + "<br>".join(map(str, self.get_sect("A2"))) + "<br>" \
+            + "<em>B1</em>: " + "<br>".join(map(str, self.get_sect("B1"))) + "<br>" \
+            + "<em>B2</em>: " + "<br>".join(map(str, self.get_sect("B2")))
     def pretty_list(self):
         """Returns a nicely formatted line-by-line rep. of the dance,
             in a list."""
@@ -77,7 +83,8 @@ class Move(models.Model):
         ("wave", "wave"),
         ("give_take", "give and take"),
         ("promenade", "promenade"),
-        ("down_hall", "down the hall"), # ASSUMING DOWN HALL --> COME BACK!
+        ("down_hall", "down the hall"),
+        ("come_back", "come back"),
         ("other", "other")
     )
 
@@ -156,9 +163,9 @@ class Move(models.Model):
         if self.movename == "swing":
             return "%s%s swing" % (self.who, self.print_if("bal", " balance and"))
         elif self.movename == "circle":
-            return "circle %s %s places" % (self.dir, self.dist)
+            return "circle %s %s places" % (self.dir, int(self.dist))
         elif self.movename == "star":
-            return "%sstar %s %d places" % (self.print_if("hands_across", "hands across "), self.hand, self.dist)
+            return "%sstar %s %d places" % (self.print_if("hands_across", "hands across "), self.hand, int(self.dist))
         elif self.movename == "dosido":
             return "%s do-si-do" % self.who + self.print_if("dist", " %sx")
         elif self.movename == "chain":
@@ -189,7 +196,10 @@ class Move(models.Model):
         elif self.movename == "promenade":
             return "promenade" + self.print_if("dir")
         elif self.movename == "down_hall":
-            return "down the hall; turn %s and come back" % self.turn_how
+            return "down the hall"
+        elif self.movename == "come_back":
+            return "turn %s and come back" % self.turn_how
+            # TODO: fix this print method
 
     #can be combined into print_if...?
     def print_moreinfo(self):

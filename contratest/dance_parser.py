@@ -1,11 +1,8 @@
 from contratest.models import Dance, Move
 import re
 
-# TODO: count
-# TODO: extra info
-
 def parse_dance(filename):
-    text = file_to_string("contratest/babyrose.txt")
+    text = file_to_string(filename)
     dance_list = break_input(text)
     dance = make_dance(dance_list[0])
     dance.save()
@@ -58,6 +55,10 @@ def make_move(move_string, dance, sect_no, seq_no, count=None):
 
     for attr in expected_values[new_move.movename]:
         setattr(new_move, attr, parser_lookup(move_string, attr, new_move.movename))
+
+    for item in extra_indicators:
+        if move_string.find(item) > -1:
+            new_move = get_extra_info(move_string, new_move)
     return new_move
 
 def make_all_moves(moves_list, dance):
@@ -100,6 +101,10 @@ def parser_lookup(input, attr, movename):
         return use_parser(input, parse_hand, ask="What's the value of 'hand'?")
     elif attr == "hands_across":
         return use_parser(input, parse_hands_across, default=False)
+    elif attr == "turn_how":
+        return use_parser(input, parse_turn_how, ask="What's the value of 'turn_how'? (Accepted values: 'alone', 'couple'.)")
+    elif attr == "moreinfo":
+        return raw_input("Describe this move.\n(Input was: %s)\n> " % input)
 
 # Making parsers
 def one_of(parsers, ask=None, default=None):
@@ -215,7 +220,6 @@ def dist_dec_decimal(input):
 
 dist_dec_parserlist = [dist_dec_fract, dist_dec_text, dist_dec_decimal]
 parse_dist_dec = one_of(dist_dec_parserlist)
-# diff defaults for circle, star, etc.
 
 def parse_movename(input):
     attempt = get_any(input, movename_dict)
@@ -224,8 +228,8 @@ def parse_movename(input):
     else:
         return
 
-def parse_bal(move_string):
-    attempt = get_any(move_string, bal_dict)
+def parse_bal(input):
+    attempt = get_any(input, bal_dict)
     if attempt:
         return attempt
     else:
@@ -268,26 +272,100 @@ def parse_who(input):
     else:
         return
 
-def parse_hand(move_string):
-    attempt = get_any(move_string, hand_dict)
+def parse_hand(input):
+    attempt = get_any(input, hand_dict)
     if attempt:
         return attempt
     else:
         return
 
-def parse_hands_across(move_string):
-    attempt = get_any(move_string, hands_across_dict)
+def parse_hands_across(input):
+    attempt = get_any(input, hands_across_dict)
     if attempt:
         return attempt
     else:
         return
 
+def parse_turn_how(input):
+    attempt = get_any(input, turn_how_dict)
+    if attempt:
+        return attempt
+    else:
+        return
+
+# looking for anything signifying additional info--if yes, return True
+def extra_info_symbol(input):
+    if input.find("*") > -1:
+        return True
+    else:
+        # looking for parens NOT indicating counts--e.g."(1)"--
+            # or distances--e.g. "(1x)"
+        n = re.search("\((?![1-9]\))", input)
+        o = re.search("\((?![1-9]x\))", input)
+        if n and o:
+            return True
+        else:
+            return False
+
+def extra_info_text(input):
+    if input.find("next") > -1:
+        return True
+    elif input.find("new") > -1:
+        return True
+    elif input.find("slide") > -1:
+        return True
+    elif input.find("pull") > -1:
+        return True
+    elif input.find("pass thr") > -1:
+        return True
+    elif input.find("locate") > -1:
+        return True
+    elif input.find("look") > -1:
+        return True
+    elif input.find("prog") > -1:
+        return True
+    elif input.find("same") > -1:
+        return True
+    elif input.find("home") > -1:
+        return True
+
+
+# TODO ^ these are allll redundant, I should be able to do it with just 'get any'
 def get_any(move_string, dict):
     for key in dict.keys():
         if move_string.find(key) > -1:
             return dict[key]
     else:
         return
+
+def get_extra_info(move_string, move):
+    user_input = raw_input("""Does this move require additional info?
+        \n(Input was: %s)
+        \n1. Yes, before.
+        \n2. Yes, after. (or 'y')
+        \n3. Yes, before and after.
+        \n4. No. (or 'n')
+        \n> """ % move_string)
+    while True:
+        if user_input == "1":
+            move.before_info = ask_for_input()
+            break
+        elif user_input in ["2", "y"]:
+            move.moreinfo = ask_for_input()
+            break
+        elif user_input == "3":
+            move.before_info = raw_input("Info before: ")
+            move.moreinfo = raw_input("Info after: ")
+            break
+        elif user_input in ["4", "n"]:
+            break
+        else:
+            print "I didn't get that, please try again."
+
+    return move
+
+def ask_for_input():
+    return raw_input("> ")
 
 text = file_to_string("contratest/babyrose.txt")
 dance_list = break_input(text)
@@ -316,7 +394,8 @@ movename_dict = {
     "f&b": "longlines",
     "ll ": "longlines",
     "chain": "chain",
-    "down the hall": "down_hall", #turning must be own move
+    "down the hall": "down_hall",
+    "come back": "come_back",
     "prom": "promenade"
 }
 
@@ -358,6 +437,11 @@ hands_across_dict = {
     "hands-across": True
 }
 
+turn_how_dict = {
+    "alone": "alone",
+    "couple": "couple"
+}
+
 # list of what values each move expects
 expected_values = {
     "swing": ["who", "bal"],
@@ -377,6 +461,8 @@ expected_values = {
     "wave": ["wave_length"],
     "give_take": [],
     "promenade": ["dir"],
-    "down_hall": ["turn_how"],
-    "other": []}
+    "down_hall": [],
+    "come_back": ["turn_how"],
+    "other": ["moreinfo"]
+}
 # http://www.cotellese.net/2007/09/27/running-external-scripts-against-django-models/

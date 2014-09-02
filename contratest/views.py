@@ -6,7 +6,7 @@ from django.db.models import Q
 
 def index(request):
     my_dances = Dance.objects.all()
-    context = {'my_dances': my_dances, 'a_dance': my_dances[0].pretty_list()}
+    context = {'my_dances': my_dances}
     return render(request, 'contratest/index.html', context)
 
 def search(request):
@@ -18,6 +18,7 @@ def search(request):
 def results(request):
 
     def logic(x, argument, value):
+        """Checks if x.argument == value"""
         return getattr(x, argument) == value
 
     def find_first_move(search_terms):
@@ -78,8 +79,8 @@ def results(request):
     first = find_first_move(move1)
     next = find_next_moves(first)
     matched = match_next_moves(next, move2)
-    dances = matched[0].dance
-    #find_dances(matched)
+    dances = find_dances(matched)
+    mydance = dances[0]
 
     '''
     dance_search_terms = []
@@ -100,5 +101,5 @@ def results(request):
     # filter by dance attributes
     result_dances = result_dances.filter(dance_query)
     '''
-    context = {"query": search_terms_by_move, "first": first, "next": next, "matched": matched, "dances": dances}
+    context = {"dances": dances, "mydance": mydance}
     return render(request, 'contratest/results.html', context)

@@ -3,14 +3,30 @@
 {% block title %}My dance database{% endblock %}
 
 {% block misc %}
-{% for line in a_dance %}
-<p>{{ line }}</p>
-{% endfor %}
+    <script type="text/javascript">
+        window.extrainfo = {
+            {% for dance in my_dances %}
+            {{ dance.pk }}: "{{ dance.pretty_print_json|safe }}",
+            {% endfor %}
+        };
+    </script>
 {% endblock %}
+
+<!--<table id="extrainfo">
+    {% for dance in my_dances %}
+    <tr data-id="{{ dance.pk }}">
+        <td>
+            {% for line in dance.pretty_list %}
+            {{ line }}<br>
+            {% endfor %}</td>
+    </tr>
+{% endfor %}
+</table>-->
 
 {% block dancetable %}
 {% for dance in my_dances %}
-    <tr>
+    <tr data-id="{{ dance.pk }}">
+        <td class="details">HIDE</td>
         <td>{{ dance.title }}</td>
         <td>{{ dance.author }}</td>
         <td>{{ dance.formation }}</td>

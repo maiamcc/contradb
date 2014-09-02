@@ -27,3 +27,4 @@ class DanceForm(forms.Form):
     # when DataTables does this so much better than i do??
 # logic about which forms/choices appear where
 # make addl choices for sect: A1, A2, B1, B2, A, B
+# http://stackoverflow.com/questions/5478432/making-a-django-form-class-with-a-dynamic-number-of-fields

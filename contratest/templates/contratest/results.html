@@ -2,9 +2,21 @@
 
 {% block title %}My dance database{% endblock %}
 
+{% block misc %}
+HELLOOOO
+<script type="text/javascript">
+        window.extrainfo = {
+            {% for dance in dances %}
+            {{ dance.pk }}: '{{ dance.pretty_print_json|safe }}',
+            {% endfor %}
+        };
+    </script>
+{% endblock %}
+
 {% block dancetable %}
 {% for dance in dances %}
-    <tr>
+    <tr data-id="{{ dance.pk }}">
+        <td class="details">HIDE</td>
         <td>{{ dance.title }}</td>
         <td>{{ dance.author }}</td>
         <td>{{ dance.formation }}</td>
