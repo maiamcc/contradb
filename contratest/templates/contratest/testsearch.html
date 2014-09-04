@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}My dance database{% endblock %}
+
+{% block misc %}
+<script type="text/javascript" language="javascript" class="init">
+    $(document).ready(function() {
+        var subforms = document.getElementsByClassName('subform');
+        console.log(subforms)
+        for (i = 0; i < subforms.length; i++) {
+            subforms[i].style.display = "none";
+        }
+    } );
+</script>
+
+<p>This is me testing a fancy search thing.</p>
+
+<p>
+<form action="testresults" method="get">
+    {% csrf_token %}
+    {{ form }}
+    {% for move, individ_form in form_list %}
+        <div class="subform" id="{{ move }}", style="display:inline-block">{{ individ_form }}</div>
+    {% endfor %}
+    <input type="submit" value="Submit" />
+</form>
+</p>
+{% endblock %}

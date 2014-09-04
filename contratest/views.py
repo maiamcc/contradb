@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from contratest.models import Dance, Move
-from forms import MoveForm, DanceForm
+from forms import MoveForm, DanceForm, testForm, individualizedForm
 from django.db.models import Q
 
 def index(request):
@@ -14,6 +14,20 @@ def search(request):
     form2 = MoveForm()
     context = {'form1': form1, 'form2': form2}
     return render(request, 'contratest/search.html', context)
+
+def testsearch(request):
+    form = testForm()
+    all_moves = Move.MOVENAME_CHOICES
+    form_list = []
+    for move in all_moves:
+        form_list.append((move[0], individualizedForm(move[0])))
+    context = {'form' : form, 'form_list' : form_list}
+    return render(request, 'contratest/testsearch.html', context)
+
+def testresults(request):
+    searched_for = request.GET.get("movename")
+    context = {"searched_for": searched_for}
+    return render(request, 'contratest/testresults.html', context)
 
 def results(request):
 

@@ -101,13 +101,42 @@ class Move(models.Model):
         ("R", "right"),
     )
 
-    DIR_CHOICES = (
+    dir_ring_choices = (
         ("L", "left"),
-        ("R", "right"),
+        ("R", "right")
+    )
+    dir_set_choices = (
         ("across", "across"),
         ("ldiag", "left diagonal"),
         ("rdiag", "right diagonal")
     )
+
+    DIR_CHOICES = dir_ring_choices + dir_set_choices
+
+    dist_whole_choices = (
+        (1, 1),
+        (2, 2),
+        (3, 3),
+        (4, 4),
+        (5, 5),
+        (6, 6)
+    )
+
+    dist_dec_choices = (
+        (.25, .25),
+        (.5, .5),
+        (.75, .75),
+        (1, 1),
+        (1.25, 1.25),
+        (1.5, 1.5),
+        (1.75, 1.75),
+        (2, 2)
+    )
+
+    DIST_CHOICES = tuple(sorted(set(dist_whole_choices + dist_dec_choices)))
+
+    # currently only for use in forms.
+    BOOL_CHOICES = ((1, True), (0, False))
 
     HEY_LENGTH_CHOICES = (
         ("half", "half"),
@@ -134,16 +163,20 @@ class Move(models.Model):
     hand = models.CharField(max_length=20, choices=HAND_CHOICES,
         default="", blank=True)
     dist = models.DecimalField(max_digits=3, decimal_places=2,
-        null=True, blank=True)
+        null=True, blank=True, choices=DIST_CHOICES)
     dir = models.CharField(max_length=20, choices=DIR_CHOICES,
         default="", blank=True)
-    bal = models.NullBooleanField(null=True)
+    bal = models.CharField(max_length=20, choices=BOOL_CHOICES,
+        default="", blank=True)
     count = models.IntegerField(default=8, null=True)
     moreinfo = models.CharField(max_length=300, default="", blank=True)
     beginning_info = models.CharField(max_length=300, default="", blank=True)
-    hands_across = models.NullBooleanField(blank=True)
-    rollaway = models.NullBooleanField(blank=True)
-    ricochet = models.NullBooleanField(blank=True)
+    hands_across = models.CharField(max_length=20, choices=BOOL_CHOICES,
+        default="", blank=True)
+    rollaway = models.CharField(max_length=20, choices=BOOL_CHOICES,
+        default="", blank=True)
+    ricochet = models.CharField(max_length=20, choices=BOOL_CHOICES,
+        default="", blank=True)
     hey_length = models.CharField(max_length=50, choices=HEY_LENGTH_CHOICES,
         default="", blank=True)
     wave_length = models.CharField(max_length=50, choices=WAVE_LENGTH_CHOICES,
@@ -223,3 +256,27 @@ class Move(models.Model):
                 return in_string
         else:
             return ""
+
+# list of what values each move expects
+expected_values = {
+    "swing": ["who", "bal"],
+    "circle": ["dir", "dist"],
+    "star": ["hand", "dist", "hands_across"],
+    "dosido": ["who", "dist"],
+    "chain": ["who", "dir"],
+    "longlines": ["rollaway"],
+    "allemande": ["who", "hand", "dist"],
+    "seesaw": ["who", "dist"],
+    "hey": ["who", "hand", "hey_length", "ricochet"],
+    "gypsy": ["who", "hand", "dist"],
+    "rlthru": ["dir"],
+    "petronella": [],
+    "pass_ocean": [],
+    "yearn": [],
+    "wave": ["wave_length"],
+    "give_take": [],
+    "promenade": ["dir"],
+    "down_hall": [],
+    "come_back": ["turn_how"],
+    "other": ["moreinfo"]
+}

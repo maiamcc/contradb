@@ -1,7 +1,10 @@
-from contratest.models import Dance, Move
+from contratest.models import *
 import re
 
 def parse_dance(filename):
+    """Converts a human-written dance from given
+        text file into a Dance object with all
+        Move objects, saves in database."""
     text = file_to_string(filename)
     dance_list = break_input(text)
     dance = make_dance(dance_list[0])
@@ -56,9 +59,10 @@ def make_move(move_string, dance, sect_no, seq_no, count=None):
     for attr in expected_values[new_move.movename]:
         setattr(new_move, attr, parser_lookup(move_string, attr, new_move.movename))
 
-    for item in extra_indicators:
-        if move_string.find(item) > -1:
-            new_move = get_extra_info(move_string, new_move)
+    needs_extra_info = use_parser(move_string, parse_extra, default=False)
+    if needs_extra_info:
+        new_move = get_extra_info(move_string, new_move)
+
     return new_move
 
 def make_all_moves(moves_list, dance):
@@ -77,6 +81,12 @@ def make_all_moves(moves_list, dance):
         sect_counter +=1
 
 def parser_lookup(input, attr, movename):
+    """Returns the result of the appropriate parser (given
+        movename and attribute) on the given input.
+
+        This is useful because certain moves will parse certain
+            attributes differently, some moves will take different
+            defaults than others and some will take no default, etc."""
     if attr == "who":
         if movename != "chain":
             return use_parser(input, parse_who, ask="What's the value of 'who'?")
@@ -93,10 +103,9 @@ def parser_lookup(input, attr, movename):
         if movename in ["circle", "star"]:
             return use_parser(input, parse_dist_whole, ask="What's the value of 'dist'? Please input in whole number of places, e.g. 'circle L 3/4' --> '3'.)")
         elif movename == "allemande":
-            print "This is an alle!"
-            use_parser(input, parse_dist_dec, ask="What's the value of 'dist'? Please input as a decimal.")
+            return use_parser(input, parse_dist_dec, ask="What's the value of 'dist'? Please input as a decimal.")
         elif movename in ["dosido", "gypsy", "seesaw"]:
-            use_parser(input, parse_dist_dec, default=None)
+            return use_parser(input, parse_dist_dec, default=None)
     elif attr == "hand":
         return use_parser(input, parse_hand, ask="What's the value of 'hand'?")
     elif attr == "hands_across":
@@ -329,6 +338,8 @@ def extra_info_text(input):
     elif input.find("home") > -1:
         return True
 
+extra_parserlist = [extra_info_symbol, extra_info_text]
+parse_extra = one_of(extra_parserlist)
 
 # TODO ^ these are allll redundant, I should be able to do it with just 'get any'
 def get_any(move_string, dict):
@@ -442,27 +453,4 @@ turn_how_dict = {
     "couple": "couple"
 }
 
-# list of what values each move expects
-expected_values = {
-    "swing": ["who", "bal"],
-    "circle": ["dir", "dist"],
-    "star": ["hand", "dist", "hands_across"],
-    "dosido": ["who", "dist"],
-    "chain": ["who", "dir"],
-    "longlines": ["rollaway"],
-    "allemande": ["who", "hand", "dist"],
-    "seesaw": ["who", "dist"],
-    "hey": ["who", "hand", "hey_length", "ricochet"],
-    "gypsy": ["who", "hand", "dist"],
-    "rlthru": ["dir"],
-    "petronella": [],
-    "pass_ocean": [],
-    "yearn": [],
-    "wave": ["wave_length"],
-    "give_take": [],
-    "promenade": ["dir"],
-    "down_hall": [],
-    "come_back": ["turn_how"],
-    "other": ["moreinfo"]
-}
 # http://www.cotellese.net/2007/09/27/running-external-scripts-against-django-models/

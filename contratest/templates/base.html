@@ -16,18 +16,11 @@
         $('#example tbody').on('click', 'td.details', function () {
                 var tr = $(this).closest('tr');
                 console.log(tr);
-                var row = table.row( tr );
-                console.log(row);
+                //var row = table.row( tr );
+                //console.log(row);
 
                 var id = tr.attr("data-id");
                 secrettext = window.extrainfo[id];
-
-                /*var id = tr.attr("data-id");
-                $('#extrainfo tr').hide();
-                secretrow = $('#extrainfo tr[data-id =' + id + ']');
-                secretrow.show();
-                var text = secretrow.html();
-                console.log(text);*/
 
                 if ( row.child.isShown() ) {
                     // This row is already open - close it
