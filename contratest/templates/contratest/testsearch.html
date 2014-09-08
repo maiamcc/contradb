@@ -5,12 +5,34 @@
 {% block misc %}
 <script type="text/javascript" language="javascript" class="init">
     $(document).ready(function() {
-        var subforms = document.getElementsByClassName('subform');
-        console.log(subforms)
-        for (i = 0; i < subforms.length; i++) {
-            subforms[i].style.display = "none";
-        }
+        //var subforms = document.getElementsByClassName('subform');
+        hideAll('subform');
+
+        $('#id_movename')[0].setAttribute('onchange', "console.log(this); openSubforms(this.value)");
     } );
+
+    function getFormset(obj){
+        return document.getElementsByClassName(obj.attr('class'));
+    }
+    function hideAll(classname){
+        var formset = document.getElementsByClassName(classname);
+
+        for (i = 0; i < formset.length; i++) {
+            formset[i].style.display = "none";
+        }
+        // update so only hides all of one class
+    }
+
+    function openSubforms(val){
+        console.log(val);
+        hideAll('subform');
+        document.getElementById(val).style.display = "inline"
+
+        // if not empty string, get appropriate form, change display style to shown
+
+
+
+    }
 </script>
 
 <p>This is me testing a fancy search thing.</p>
