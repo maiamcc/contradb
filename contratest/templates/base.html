@@ -16,8 +16,7 @@
         $('#example tbody').on('click', 'td.details', function () {
                 var tr = $(this).closest('tr');
                 console.log(tr);
-                //var row = table.row( tr );
-                //console.log(row);
+                var row = table.row( tr );
 
                 var id = tr.attr("data-id");
                 secrettext = window.extrainfo[id];

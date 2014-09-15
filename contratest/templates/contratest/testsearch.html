@@ -3,11 +3,19 @@
 {% block title %}My dance database{% endblock %}
 
 {% block misc %}
+    <script type="text/javascript">
+        window.extraforms = {
+            {% for move, individ_form in form_list %}
+            {% spaceless %}
+            {{ move }}: '<div class="subform" id="{{ move }}", style="display:inline-block">{{ individ_form }}</div>',
+            {% endspaceless %}
+            {% endfor %}
+        };
+    </script>
+
 <script type="text/javascript" language="javascript" class="init">
     $(document).ready(function() {
-        //var subforms = document.getElementsByClassName('subform');
-        hideAll('subform');
-
+        hideAll('subform'); //this won't work if there's more than one form...
         $('#id_movename')[0].setAttribute('onchange', "console.log(this); openSubforms(this.value)");
     } );
 
@@ -26,12 +34,22 @@
     function openSubforms(val){
         console.log(val);
         hideAll('subform');
-        document.getElementById(val).style.display = "inline"
-
+            // should also clear all values, disable hidden forms
+        // document.getElementById(val).style.display = "inline"
+        // var newDiv = document.createElement('div')
+        // newDiv.style.display = "inline"
+        // newDiv.innerHTML = extraforms[val]
+        // $('#form1').append(newDiv)
+        $('#subform1').html(extraforms[val])
         // if not empty string, get appropriate form, change display style to shown
+    }
 
+    function addForm(){
+        console.log("you added a form!")
+    }
 
-
+    function removeForm(){
+        console.log("you removed a form!")
     }
 </script>
 
@@ -40,10 +58,11 @@
 <p>
 <form action="testresults" method="get">
     {% csrf_token %}
-    {{ form }}
-    {% for move, individ_form in form_list %}
-        <div class="subform" id="{{ move }}", style="display:inline-block">{{ individ_form }}</div>
-    {% endfor %}
+    <div id="form1">{{ form }}
+        <div id="subform1" style="display: inline"></div>
+    </div>
+    <input type="button" value="+" onclick="addForm()">
+    <input type="button" value="-" onclick="removeForm()">
     <input type="submit" value="Submit" />
 </form>
 </p>

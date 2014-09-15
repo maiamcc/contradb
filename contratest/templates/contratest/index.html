@@ -12,17 +12,6 @@
     </script>
 {% endblock %}
 
-<!--<table id="extrainfo">
-    {% for dance in my_dances %}
-    <tr data-id="{{ dance.pk }}">
-        <td>
-            {% for line in dance.pretty_list %}
-            {{ line }}<br>
-            {% endfor %}</td>
-    </tr>
-{% endfor %}
-</table>-->
-
 {% block dancetable %}
 {% for dance in my_dances %}
     <tr data-id="{{ dance.pk }}">
