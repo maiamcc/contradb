@@ -36,11 +36,14 @@
         newForm.find('.babyform').attr("id", "subform" + formCount); // change id of baby
        newForm.find('.babyform').html(""); // clear baby
         $('#searchform').append(newForm);
-        console.log("you added a form!");
     }
 
     function removeForm(){
-        console.log("you removed a form!");
+        var allForms = $('.mamaform');
+        if (allForms.length > 1) {
+            allForms[allForms.length-1].remove();
+        }
+        // there's probably a more elegant way to do this
     }
 
     function countForms(){
