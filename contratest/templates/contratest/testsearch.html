@@ -19,9 +19,12 @@
 
 <script type="text/javascript" language="javascript" class="init">
     $(document).ready(function() {
-        $('#id_movename')[0].setAttribute('onchange', "openSubforms(this.parentNode.getAttribute('data-formNo'), this.value)");
+        firstForm = $('#id_movename')[0];
+        firstForm.setAttribute('onchange', "openSubforms(this.parentNode.getAttribute('data-formNo'), this.value)");
+        openSubforms(firstForm.parentNode.getAttribute('data-formNo'), firstForm.value);
     } );
     // should show appropriate subforms on load (e.g. back button/post)
+    // currently doesn't support back button to multiple forms
 
     function openSubforms(formNo, val){
         $('#subform' + formNo).html(extraforms[val]);
