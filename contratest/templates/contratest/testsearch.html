@@ -10,46 +10,41 @@
             {{ move }}: '<div class="subform" id="{{ move }}", style="display:inline-block">{{ individ_form }}</div>',
             {% endspaceless %}
             {% endfor %}
+            "": ""
         };
+
+    // should i combine this with the js below?
     </script>
+
 
 <script type="text/javascript" language="javascript" class="init">
     $(document).ready(function() {
-        hideAll('subform'); //this won't work if there's more than one form...
-        $('#id_movename')[0].setAttribute('onchange', "console.log(this); openSubforms(this.value)");
+        $('#id_movename')[0].setAttribute('onchange', "openSubforms(this.parentNode.getAttribute('data-formNo'), this.value)");
     } );
+    // should show appropriate subforms on load (e.g. back button/post)
 
-    function getFormset(obj){
-        return document.getElementsByClassName(obj.attr('class'));
-    }
-    function hideAll(classname){
-        var formset = document.getElementsByClassName(classname);
-
-        for (i = 0; i < formset.length; i++) {
-            formset[i].style.display = "none";
-        }
-        // update so only hides all of one class
-    }
-
-    function openSubforms(val){
-        console.log(val);
-        hideAll('subform');
-            // should also clear all values, disable hidden forms
-        // document.getElementById(val).style.display = "inline"
-        // var newDiv = document.createElement('div')
-        // newDiv.style.display = "inline"
-        // newDiv.innerHTML = extraforms[val]
-        // $('#form1').append(newDiv)
-        $('#subform1').html(extraforms[val])
-        // if not empty string, get appropriate form, change display style to shown
+    function openSubforms(formNo, val){
+        $('#subform' + formNo).html(extraforms[val]);
     }
 
     function addForm(){
-        console.log("you added a form!")
+        var newForm = $('#form0').clone();
+        formCount = countForms();
+
+        newForm.attr("id", "form" + formCount); //change ID of mama
+        newForm.attr("data-formNo", formCount); // change form-no of mama
+        newForm.find('.babyform').attr("id", "subform" + formCount); // change id of baby
+       newForm.find('.babyform').html(""); // clear baby
+        $('#searchform').append(newForm);
+        console.log("you added a form!");
     }
 
     function removeForm(){
-        console.log("you removed a form!")
+        console.log("you removed a form!");
+    }
+
+    function countForms(){
+        return document.getElementsByClassName("mamaform").length;
     }
 </script>
 
@@ -58,8 +53,10 @@
 <p>
 <form action="testresults" method="get">
     {% csrf_token %}
-    <div id="form1">{{ form }}
-        <div id="subform1" style="display: inline"></div>
+    <div id="searchform">
+        <div id="form0" class="mamaform" data-formNo="0">{{ form }}
+            <div id="subform0" class="babyform" style="display: inline"></div>
+        </div>
     </div>
     <input type="button" value="+" onclick="addForm()">
     <input type="button" value="-" onclick="removeForm()">
