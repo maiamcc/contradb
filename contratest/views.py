@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from contratest.models import Dance, Move
 from forms import MoveForm, DanceForm, testForm, individualizedForm
 from django.db.models import Q
+from collections import defaultdict
 
 def index(request):
     my_dances = Dance.objects.all()
@@ -25,7 +26,11 @@ def testsearch(request):
     return render(request, 'contratest/testsearch.html', context)
 
 def testresults(request):
-    searched_for = request.GET.get("movename")
+    requests = defaultdict(dict)
+    for k, v in request.GET.iteritems():
+        if not (k.startswith("csrf")):
+            requests[int(k[-1])][k[:-1]] = v
+    searched_for = requests
     context = {"searched_for": searched_for}
     return render(request, 'contratest/testresults.html', context)
 

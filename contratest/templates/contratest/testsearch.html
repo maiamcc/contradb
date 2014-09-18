@@ -21,13 +21,23 @@
     $(document).ready(function() {
         firstForm = $('#id_movename')[0];
         firstForm.setAttribute('onchange', "openSubforms(this.parentNode.getAttribute('data-formNo'), this.value)");
+        firstForm.setAttribute("name", "movename0")
         openSubforms(firstForm.parentNode.getAttribute('data-formNo'), firstForm.value);
     } );
-    // should show appropriate subforms on load (e.g. back button/post)
     // currently doesn't support back button to multiple forms
 
     function openSubforms(formNo, val){
-        $('#subform' + formNo).html(extraforms[val]);
+        thisForm = $('#subform' + formNo)
+        thisForm.html(extraforms[val]);
+        components = thisForm.find('select')
+        updateName(components, formNo)
+    }
+
+    function updateName(fields, formNo){
+        fields.each( function() {
+            curName = $(this).attr("name");
+            $(this).attr("name", curName+formNo);
+        });
     }
 
     function addForm(){
@@ -36,8 +46,9 @@
 
         newForm.attr("id", "form" + formCount); //change ID of mama
         newForm.attr("data-formNo", formCount); // change form-no of mama
+        newForm.find('#id_movename').attr("name", "movename" + formCount) // update 'name' of movename dropdown with appropriate form number
         newForm.find('.babyform').attr("id", "subform" + formCount); // change id of baby
-       newForm.find('.babyform').html(""); // clear baby
+        newForm.find('.babyform').html(""); // clear baby
         $('#searchform').append(newForm);
     }
 
