@@ -3,13 +3,80 @@
 {% block title %}My dance database{% endblock %}
 
 {% block misc %}
-<p>This is some stuff!</p>
+    <script type="text/javascript">
+        window.extraforms = {
+            {% for move, individ_form in form_list %}
+            {% spaceless %}
+            {{ move }}: '<div class="subform" id="{{ move }}", style="display:inline-block">{{ individ_form }}</div>',
+            {% endspaceless %}
+            {% endfor %}
+            "": ""
+        };
+
+    // should i combine this with the js below?
+    </script>
+
+
+<script type="text/javascript" language="javascript" class="init">
+    $(document).ready(function() {
+        firstForm = $('#id_movename')[0];
+        firstForm.setAttribute('onchange', "openSubforms(this.parentNode.getAttribute('data-formNo'), this.value)");
+        firstForm.setAttribute("name", "movename0")
+        openSubforms(firstForm.parentNode.getAttribute('data-formNo'), firstForm.value);
+    } );
+    // currently doesn't support back button to multiple forms
+
+    function openSubforms(formNo, val){
+        thisForm = $('#subform' + formNo)
+        thisForm.html(extraforms[val]);
+        components = thisForm.find('select')
+        updateName(components, formNo)
+    }
+
+    function updateName(fields, formNo){
+        fields.each( function() {
+            curName = $(this).attr("name");
+            $(this).attr("name", curName+formNo);
+        });
+    }
+
+    function addForm(){
+        var newForm = $('#form0').clone();
+        formCount = countForms();
+
+        newForm.attr("id", "form" + formCount); //change ID of mama
+        newForm.attr("data-formNo", formCount); // change form-no of mama
+        newForm.find('#id_movename').attr("name", "movename" + formCount) // update 'name' of movename dropdown with appropriate form number
+        newForm.find('.babyform').attr("id", "subform" + formCount); // change id of baby
+        newForm.find('.babyform').html(""); // clear baby
+        $('#searchform').append(newForm);
+    }
+
+    function removeForm(){
+        var allForms = $('.mamaform');
+        if (allForms.length > 1) {
+            allForms[allForms.length-1].remove();
+        }
+        // there's probably a more elegant way to do this
+    }
+
+    function countForms(){
+        return document.getElementsByClassName("mamaform").length;
+    }
+</script>
+
+<p>This is me testing a fancy search thing.</p>
+
 <p>
 <form action="results" method="get">
     {% csrf_token %}
-    <p>{{ form1 }}</p>
-    <p>{{ form2 }}</p>
-    <p>{{ danceform }}</p>
+    <div id="searchform">
+        <div id="form0" class="mamaform" data-formNo="0">{{ form }}
+            <div id="subform0" class="babyform" style="display: inline"></div>
+        </div>
+    </div>
+    <input type="button" value="+" onclick="addForm()">
+    <input type="button" value="-" onclick="removeForm()">
     <input type="submit" value="Submit" />
 </form>
 </p>

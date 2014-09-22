@@ -3,11 +3,15 @@
 {% block title %}My dance database{% endblock %}
 
 {% block misc %}
-HELLOOOO
-<script type="text/javascript">
+<p>You searched for: {{ searched_for }}</p>
+<p>{{ st }}</p>
+<p>{{ stuff }}</p>
+<p>{{ query }}</p>
+
+    <script type="text/javascript">
         window.extrainfo = {
             {% for dance in dances %}
-            {{ dance.pk }}: '{{ dance.pretty_print_json|safe }}',
+            {{ dance.pk }}: "{{ dance.pretty_print_json|safe }}",
             {% endfor %}
         };
     </script>
