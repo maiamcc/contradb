@@ -194,11 +194,11 @@ class Move(models.Model):
 
     def print_specific(self):
         if self.movename == "swing":
-            return "%s%s swing" % (self.who, self.print_if("bal", " balance and"))
+            return "%s%s swing" % (self.who, self.print_if("bal", " balance and", except_for="0"))
         elif self.movename == "circle":
             return "circle %s %s places" % (self.dir, int(self.dist))
         elif self.movename == "star":
-            return "%sstar %s %d places" % (self.print_if("hands_across", "hands across "), self.hand, int(self.dist))
+            return "%sstar %s %d places" % (self.print_if("hands_across", "hands across ", except_for="0"), self.hand, int(self.dist))
         elif self.movename == "dosido":
             return "%s do-si-do" % self.who + self.print_if("dist", " %sx")
         elif self.movename == "chain":
