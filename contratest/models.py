@@ -162,8 +162,8 @@ class Move(models.Model):
         default="", blank=True)
     hand = models.CharField(max_length=20, choices=HAND_CHOICES,
         default="", blank=True)
-    dist = models.DecimalField(max_digits=3, decimal_places=2,
-        null=True, blank=True, choices=DIST_CHOICES)
+    dist = models.CharField(max_length=20, choices=DIST_CHOICES,
+        default="", blank=True)
     dir = models.CharField(max_length=20, choices=DIR_CHOICES,
         default="", blank=True)
     bal = models.CharField(max_length=20, choices=BOOL_CHOICES,
@@ -196,9 +196,9 @@ class Move(models.Model):
         if self.movename == "swing":
             return "%s%s swing" % (self.who, self.print_if("bal", " balance and", except_for="0"))
         elif self.movename == "circle":
-            return "circle %s %s places" % (self.dir, int(self.dist))
+            return "circle %s %s places" % (self.dir, self.dist)
         elif self.movename == "star":
-            return "%sstar %s %d places" % (self.print_if("hands_across", "hands across ", except_for="0"), self.hand, int(self.dist))
+            return "%sstar %s %s places" % (self.print_if("hands_across", "hands across ", except_for="0"), self.hand, self.dist)
         elif self.movename == "dosido":
             return "%s do-si-do" % self.who + self.print_if("dist", " %sx")
         elif self.movename == "chain":

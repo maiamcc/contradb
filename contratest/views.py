@@ -33,13 +33,13 @@ def results(request):
         move_query = None
         stuff = []
         for arg, val in search_terms.iteritems():
-            stuff.append(arg)
-            stuff.append(val)
-            q = make_query(arg, val)
-            if move_query:
-                move_query = q & move_query
-            else:
-                move_query = q
+            # if arg != "logic"
+            if val:
+                q = make_query(arg, val)
+                if move_query:
+                    move_query = q & move_query
+                else:
+                    move_query = q
         return Move.objects.filter(move_query)
 
     def find_next_moves(moves_list):
@@ -53,7 +53,7 @@ def results(request):
     def filter_moves_by_query(moves_list, search_terms):
         results = list(moves_list)
         for arg, val in search_terms.iteritems():
-            if val != "":
+            if val:
                 results = filter(lambda move: logic(move, arg, val), results)
         return results
 
@@ -65,17 +65,27 @@ def results(request):
             result_dances.append(move.dance)
         return list(set(result_dances))
 
+    print request.GET.items()
     searched_for = defaultdict(dict)
     for k, v in request.GET.iteritems():
         if not (k.startswith("csrf")):
             searched_for[int(k[-1])][k[:-1]] = v
+    and_dict = filter(lambda d: d.get('logic')=="and", searched_for.values())
+    follow_dict = filter(lambda d: d.get('logic')!="and", searched_for.values())
+    print "Searched_for:", searched_for
+    print "and_dict:", and_dict
     search_terms = searched_for[0]
     matches = find_first_move(searched_for[0])
     if len(searched_for.keys()) > 1:
         for query_num, search in sorted(searched_for.items()[1:]):
-            next_moves = find_next_moves(matches)
-            matches = filter_moves_by_query(next_moves, search)
+            if search["logic"] == "followed":
+                next_moves = find_next_moves(matches)
+                matches = filter_moves_by_query(next_moves, search)
     dances = find_dances(matches)
 
-    context = {"searched_for": searched_for, "dances": dances}
+    #list of dicts
+
+
+
+    context = {"searched_for": searched_for} #, "dances": dances
     return render(request, 'contratest/results.html', context)
