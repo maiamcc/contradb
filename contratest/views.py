@@ -81,10 +81,13 @@ def results(request):
             result_dances.append(move.dance)
         return list(set(result_dances))
 
-    def resolve_query_dict(d, moves_list=Move.objects.all()):
-        print d
+    def resolve_query_dict(d, moves_list=None):
+        # MUTABLE OBJS GENERALLY NOT FOR DEFAULT ARGS
+        # None truth checks use 'is' not '=' b/c None is a singleton
+        if moves_list is None:
+            moves_list = Move.objects.all()
+
         first_search = d[sorted(d.keys())[0]]
-        print first_search
         matches = filter_moves_by_query(first_search, moves_list)
         if len(d.keys()) > 1:
             for query_num, search in sorted(d.items())[1:]:
@@ -97,7 +100,10 @@ def results(request):
         if not (k.startswith("csrf")):
             searched_for[k[-1]][int(k[-2])][k[:-2]] = v
     pprint(searched_for)
-    moves_found = resolve_query_dict(searched_for["a"])
+    moves_to_search = None
+    for letter, sub_dict in searched_for.iteritems():
+        moves_found = resolve_query_dict(sub_dict, moves_to_search)
+        moves_to_search = find_all_moves_in_dance(moves_found)
     dances = find_dances(moves_found)
 
     context = {"searched_for": searched_for, "dances": dances}
