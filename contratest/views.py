@@ -33,7 +33,6 @@ def results(request):
         move_query = None
         stuff = []
         for arg, val in search_terms.iteritems():
-            # if arg != "logic"
             if val:
                 q = make_query(arg, val)
                 if move_query:
@@ -66,26 +65,20 @@ def results(request):
         return list(set(result_dances))
 
     print request.GET.items()
+
     searched_for = defaultdict(dict)
     for k, v in request.GET.iteritems():
         if not (k.startswith("csrf")):
             searched_for[int(k[-1])][k[:-1]] = v
-    and_dict = filter(lambda d: d.get('logic')=="and", searched_for.values())
-    follow_dict = filter(lambda d: d.get('logic')!="and", searched_for.values())
-    print "Searched_for:", searched_for
-    print "and_dict:", and_dict
+
     search_terms = searched_for[0]
     matches = find_first_move(searched_for[0])
     if len(searched_for.keys()) > 1:
         for query_num, search in sorted(searched_for.items()[1:]):
-            if search["logic"] == "followed":
-                next_moves = find_next_moves(matches)
-                matches = filter_moves_by_query(next_moves, search)
+            next_moves = find_next_moves(matches)
+            matches = filter_moves_by_query(next_moves, search)
     dances = find_dances(matches)
 
-    #list of dicts
+    context = {"searched_for": searched_for, "dances": dances}
 
-
-
-    context = {"searched_for": searched_for} #, "dances": dances
     return render(request, 'contratest/results.html', context)
