@@ -20,6 +20,14 @@ def search(request):
     return render(request, 'contratest/search.html', context)
 
 def results(request):
+    def pprint(d):
+        for k, v in d.iteritems():
+            print k
+            for k1, v1 in v.iteritems():
+                print "\t",k1
+                for k2, v2 in v1.iteritems():
+                    print "\t\t",k2,"-->",v2
+
     def logic(x, argument, value):
         """Checks if x.argument == value"""
         return getattr(x, argument) == value
@@ -27,12 +35,15 @@ def results(request):
     def make_query(arg, val):
         return Q(**{"%s__exact" % arg: val})
 
-    def find_first_move(search_terms):
+    def find_first_move(search_dict):
+        ### This is nice and faster than the other way of
+            # doing things, but for extensibility I may have
+            # to scrap it =(
         """Given a set of search terms (a list of (argument, value)
             pairs), returns a list of all matching moves."""
         move_query = None
         stuff = []
-        for arg, val in search_terms.iteritems():
+        for arg, val in search_dict.iteritems():
             if val:
                 q = make_query(arg, val)
                 if move_query:
@@ -46,12 +57,18 @@ def results(request):
         for move in moves_list:
             for x in Move.objects.filter(dance__exact=move.dance).filter(seq__exact=move.seq+1):
                 results.append(x)
-                # can i do this more cleanly? just appending = i appended lists rather than just the moves, and appending x for x in [[filter code]] made me generator objects. wuh?
         return results
 
-    def filter_moves_by_query(moves_list, search_terms):
+    def find_all_moves_in_dance(moves_list):
+        results = []
+        for move in moves_list:
+            for x in Move.objects.filter(dance__exact=move.dance):
+                results.append(x)
+        return results
+
+    def filter_moves_by_query(search_dict, moves_list=Move.objects.all()):
         results = list(moves_list)
-        for arg, val in search_terms.iteritems():
+        for arg, val in search_dict.iteritems():
             if val:
                 results = filter(lambda move: logic(move, arg, val), results)
         return results
@@ -64,20 +81,24 @@ def results(request):
             result_dances.append(move.dance)
         return list(set(result_dances))
 
-    print request.GET.items()
+    def resolve_query_dict(d, moves_list=Move.objects.all()):
+        print d
+        first_search = d[sorted(d.keys())[0]]
+        print first_search
+        matches = filter_moves_by_query(first_search, moves_list)
+        if len(d.keys()) > 1:
+            for query_num, search in sorted(d.items())[1:]:
+                next_moves = find_next_moves(matches)
+                matches = filter_moves_by_query(search, next_moves)
+        return matches
 
-    searched_for = defaultdict(dict)
+    searched_for = defaultdict(lambda : defaultdict(dict))
     for k, v in request.GET.iteritems():
         if not (k.startswith("csrf")):
-            searched_for[int(k[-1])][k[:-1]] = v
-
-    search_terms = searched_for[0]
-    matches = find_first_move(searched_for[0])
-    if len(searched_for.keys()) > 1:
-        for query_num, search in sorted(searched_for.items()[1:]):
-            next_moves = find_next_moves(matches)
-            matches = filter_moves_by_query(next_moves, search)
-    dances = find_dances(matches)
+            searched_for[k[-1]][int(k[-2])][k[:-2]] = v
+    pprint(searched_for)
+    moves_found = resolve_query_dict(searched_for["a"])
+    dances = find_dances(moves_found)
 
     context = {"searched_for": searched_for, "dances": dances}
 

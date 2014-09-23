@@ -32,7 +32,6 @@
     function openSubforms(formNo, formLet, val){
         thisForm = $('#subform' + formNo + formLet)
         thisForm.html(extraforms[val]);
-        console.log(extraforms.val)
         components = thisForm.find('select')
         updateName(components, formNo, formLet)
     }
