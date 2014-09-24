@@ -20,13 +20,31 @@ def search(request):
     return render(request, 'contratest/search.html', context)
 
 def results(request):
-    def pprint(d):
+    def pretty_repr(d):
         for k, v in d.iteritems():
             print k
             for k1, v1 in v.iteritems():
                 print "\t",k1
                 for k2, v2 in v1.iteritems():
                     print "\t\t",k2,"-->",v2
+
+    def pretty_print(d):
+        results = []
+        for i, v in enumerate(d.values()):
+            if i != 0:
+                results.append("and")
+            for k1, v1 in v.iteritems():
+                results.append("<pre>   %s=%s</pre>" % ("movename", v1["movename"]))
+                for k2, v2 in v1.iteritems():
+                    if k2 != "movename":
+                        if v2:
+                            val = v2
+                        else:
+                            val = "[any]"
+                        results.append("<pre>        %s=%s</pre>" % (k2, val))
+
+
+        return results
 
     def logic(x, argument, value):
         """Checks if x.argument == value"""
@@ -99,13 +117,14 @@ def results(request):
     for k, v in request.GET.iteritems():
         if not (k.startswith("csrf")):
             searched_for[k[-1]][int(k[-2])][k[:-2]] = v
-    pprint(searched_for)
+    pretty_search_terms = pretty_print(searched_for)
+    print pretty_search_terms
     moves_to_search = None
     for letter, sub_dict in searched_for.iteritems():
         moves_found = resolve_query_dict(sub_dict, moves_to_search)
         moves_to_search = find_all_moves_in_dance(moves_found)
     dances = find_dances(moves_found)
 
-    context = {"searched_for": searched_for, "dances": dances}
+    context = {"pretty_search_terms": pretty_search_terms, "dances": dances}
 
     return render(request, 'contratest/results.html', context)

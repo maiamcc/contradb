@@ -3,7 +3,12 @@
 {% block title %}My dance database{% endblock %}
 
 {% block misc %}
-<p>You searched for: {{ searched_for }}</p>
+<div id = "searched_for">
+<p>You searched for:</p>
+    {% for line in pretty_search_terms %}
+    <p>{{ line|safe }}</p>
+    {% endfor %}
+</div>
 
     <script type="text/javascript">
         window.extrainfo = {
