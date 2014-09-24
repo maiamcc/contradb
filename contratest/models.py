@@ -45,10 +45,12 @@ class Dance(models.Model):
     def moves_list(self):
         result = []
         for move in self.move_set.all():
-            if move.movename == "swing" and move.bal:
+            if move.movename == "swing" and move.bal == "1":
                 result.append("balance and swing")
             elif move.movename == "chain":
                 result.append("%s %s" % (move.who, move.movename))
+            elif move.movename == "come_back":
+                pass
             else:
                 result.append(move.movename)
         return list(set(result))

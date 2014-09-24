@@ -1,8 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {% load staticfiles %}
+
     <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="http://cdn.datatables.net/1.10.2/css/jquery.dataTables.css">
+
+    <!-- Tabletools CSS -->
+    <link rel="stylesheet" type="text/css" href="{% static 'contratest/dataTables.tableTools.css' %}">
 
     <!-- jQuery -->
     <script type="text/javascript" charset="utf8" src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
@@ -10,32 +15,88 @@
     <!-- DataTables -->
     <script type="text/javascript" charset="utf8" src="http://cdn.datatables.net/1.10.2/js/jquery.dataTables.js"></script>
 
+    <!-- Tabletools js -->
+    <script type="text/javascript" charset="utf8" src="http://www.datatables.net/release-datatables/extensions/TableTools/js/dataTables.tableTools.js"></script>
+
     <script type="text/javascript" class="init">
+
+
         $(document).ready(function() {
-        var table = $('#example').DataTable();
-        $('#example tbody').on('click', 'td.details', function () {
-                var tr = $(this).closest('tr');
-                console.log(tr);
-                var row = table.row( tr );
+            function expandAll(){
+                var rows = $('#example tr'); // this will include extraneous rows
+                for (i = 2; i < rows.length; i++) {
+                    var tr = rows.eq(i)
+                    var row = table.row( tr );
 
-                var id = tr.attr("data-id");
-                secrettext = window.extrainfo[id];
+                    var id = tr.attr("data-id");
+                    secrettext = window.extrainfo[id];
 
-                if ( row.child.isShown() ) {
-                    // This row is already open - close it
-                    row.child.hide();
-                    tr.removeClass('shown');
-                }
-                else {
                     // Open this row
                     row.child( "<table><tr><td>" + secrettext + "</td></tr></table>" ).show();
                     tr.addClass('shown');
                 }
             }
-            );
+
+            function collapseAll(){
+                var rows = $('#example tr'); // this will include extraneous rows
+                for (i = 2; i < rows.length; i++) {
+                    var tr = rows.eq(i)
+                    var row = table.row( tr );
+
+                    if ( row.child.isShown() ) {
+                        // This row is already open - close it
+                        row.child.hide();
+                        tr.removeClass('shown');
+                    }
+                }
+            }
+
+            var table = $('#example').DataTable( {
+                "dom": 'l<"clear"><"horiz_container"Tf>tip',
+                "oTableTools": {
+                    "aButtons": [
+                        {
+                            "sExtends":    "text",
+                            "sButtonText":    "Expand All",
+                            "fnClick": function () {
+                                expandAll();
+                            }
+                        },
+                        {
+                            "sExtends":    "text",
+                            "sButtonText":    "Collapse All",
+                            "fnClick": function () {
+                                collapseAll();
+                            }
+                        }
+                    ]
+                }
+                    } );
+
+            $('#example tbody').on('click', 'td.details', function () {
+                    var tr = $(this).closest('tr');
+                    var row = table.row( tr );
+
+                    var id = tr.attr("data-id");
+                    secrettext = window.extrainfo[id];
+
+                    if ( row.child.isShown() ) {
+                        // This row is already open - close it
+                        row.child.hide();
+                        tr.removeClass('shown');
+                    }
+                    else {
+                        // Open this row
+                        row.child( "<table><tr><td>" + secrettext + "</td></tr></table>" ).show();
+                        tr.addClass('shown');
+                    }
+
+
+            });
 
         window.blah = table
         } );
+
 
 
     </script>
