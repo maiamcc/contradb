@@ -21,6 +21,7 @@ def search(request):
 
 def results(request):
     def pretty_repr(d):
+        """For debug."""
         for k, v in d.iteritems():
             print k
             for k1, v1 in v.iteritems():
@@ -42,35 +43,37 @@ def results(request):
                         else:
                             val = "[any]"
                         results.append("<pre>        %s=%s</pre>" % (k2, val))
-
-
         return results
 
-    def logic(x, argument, value):
-        """Checks if x.argument == value"""
-        return getattr(x, argument) == value
+    def get_reqest_to_nested_dict(req):
+        """Turns given GET request into a nested dict."""
+        results = defaultdict(lambda : defaultdict(dict))
+        for k, v in req.GET.iteritems():
+            if not (k.startswith("csrf")):
+                results[k[-1]][int(k[-2])][k[:-2]] = v
+        return results
 
-    def make_query(arg, val):
-        return Q(**{"%s__exact" % arg: val})
+    def nested_dict_to_list(dict):
+        """Turns a nested dict of search terms into a list of lists of dicts.
+        e.g. [[A,B],[C],[D,E]] where A = {"move" : "foo", "who" : "bar"} etc.
+        and [A,B] = <move defined by move query A> followed by
+        <move defined by move query B>"""
+        results = []
+        for k, v in sorted(dict.iteritems()):
+            subresults = []
+            for k1, v1 in sorted(v.iteritems()):
+                subresults.append(v1)
+            results.append(subresults)
+        return results
 
-    def find_first_move(search_dict):
-        ### This is nice and faster than the other way of
-            # doing things, but for extensibility I may have
-            # to scrap it =(
-        """Given a set of search terms (a list of (argument, value)
-            pairs), returns a list of all matching moves."""
-        move_query = None
-        stuff = []
-        for arg, val in search_dict.iteritems():
-            if val:
-                q = make_query(arg, val)
-                if move_query:
-                    move_query = q & move_query
-                else:
-                    move_query = q
-        return Move.objects.filter(move_query)
+    # TERMINOLOGY:
+    # {"move" : "swing", "who" : "partner"} = move_query (a dict. representing a collection of attributes that points to a specific move)
+    # [{"move" : "foo", "who" : "bar"}, {"move" : "baz", "hand" : "R"}] = query_sequence
+    # [[{"move" : "foo", "who" : "bar"}, {"move" : "baz", "hand" : "R"}], [{"move" : "swing", "who" : "partner"}]] = query_set
 
     def find_next_moves(moves_list):
+        """Given a moves list, returns a list of moves that come directly after given moves
+            in their dance."""
         results = []
         for move in moves_list:
             for x in Move.objects.filter(dance__exact=move.dance).filter(seq__exact=move.seq+1):
@@ -78,18 +81,52 @@ def results(request):
         return results
 
     def find_all_moves_in_dance(moves_list):
+        """Given a moves list, returns a list of all moves belonging to the same dances as given moves."""
         results = []
         for move in moves_list:
             for x in Move.objects.filter(dance__exact=move.dance):
                 results.append(x)
         return results
 
-    def filter_moves_by_query(search_dict, moves_list=Move.objects.all()):
+    def filter_moves_by_query(move_query, moves_list):
+        """Returns subset of a given moves list that match search terms given in the move query."""
         results = list(moves_list)
-        for arg, val in search_dict.iteritems():
+        for attr, val in move_query.iteritems():
             if val:
-                results = filter(lambda move: logic(move, arg, val), results)
+                results = filter(lambda move: getattr(move, attr) == val, results)
+                # results = [move for move in results if getattr(move, attr) == val]
         return results
+
+    def resolve_query_sequence(query_seq, moves_list):
+        """Resolves an ordered list of move queries (i.e. a list of dicts). Given a query
+            sequence [A, B, C], where each element is a move query, returns moves
+            belonging to those dances which contain moves A, B, and C in sequence."""
+        if moves_list is None:
+            moves_list = Move.objects.all()
+
+        first_search = query_seq.pop(0)
+        matches = filter_moves_by_query(first_search, moves_list)
+        while len(query_seq) > 0:
+            next_moves = find_next_moves(matches)
+            matches = filter_moves_by_query(query_seq.pop(0), next_moves)
+        return matches
+
+    def resolve_query_set(query_set, moves_to_search=None):
+        """Given a query set (a list of query sequences, i.e. a list of lists of move queries),
+            returns moves belonging to those dances which contain fulfil all elements of the
+            query set."""
+        if moves_to_search is None:
+            moves_to_search = Move.objects.all()
+
+        if len(query_set) == 1:
+            cur_query = query_set[0]
+            answer = resolve_query_sequence(cur_query, moves_to_search)
+            return answer
+        else:
+            cur_query = query_set[0]
+            cur_results = resolve_query_sequence(cur_query, moves_to_search)
+            rest_of_dances = find_all_moves_in_dance(cur_results)
+            return resolve_query_set(query_set[1:], rest_of_dances)
 
     def find_dances(moves_list):
         """Returns a list of dances to which moves in the
@@ -99,30 +136,17 @@ def results(request):
             result_dances.append(move.dance)
         return list(set(result_dances))
 
-    def resolve_query_dict(d, moves_list=None):
-        # MUTABLE OBJS GENERALLY NOT FOR DEFAULT ARGS
-        # None truth checks use 'is' not '=' b/c None is a singleton
-        if moves_list is None:
-            moves_list = Move.objects.all()
+    # make a nested dict
+    searched_for = get_reqest_to_nested_dict(request)
 
-        first_search = d[sorted(d.keys())[0]]
-        matches = filter_moves_by_query(first_search, moves_list)
-        if len(d.keys()) > 1:
-            for query_num, search in sorted(d.items())[1:]:
-                next_moves = find_next_moves(matches)
-                matches = filter_moves_by_query(search, next_moves)
-        return matches
-
-    searched_for = defaultdict(lambda : defaultdict(dict))
-    for k, v in request.GET.iteritems():
-        if not (k.startswith("csrf")):
-            searched_for[k[-1]][int(k[-2])][k[:-2]] = v
+    # send pretty formatting to page, print to console
     pretty_search_terms = pretty_print(searched_for)
-    print pretty_search_terms
-    moves_to_search = None
-    for letter, sub_dict in searched_for.iteritems():
-        moves_found = resolve_query_dict(sub_dict, moves_to_search)
-        moves_to_search = find_all_moves_in_dance(moves_found)
+    pretty_repr(searched_for)
+
+    # make nested dict into a list
+    search_term_list = nested_dict_to_list(searched_for)
+
+    moves_found = resolve_query_set(search_term_list)
     dances = find_dances(moves_found)
 
     context = {"pretty_search_terms": pretty_search_terms, "dances": dances}
