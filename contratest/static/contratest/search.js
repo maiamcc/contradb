@@ -5,6 +5,7 @@ $(document).ready(function() {
   $firstForm = $('#id_movename').eq(0);
   $firstForm.attr('onchange', "openSubforms($(this).parent().attr('data-formnum'), $(this).parent().attr('data-formlet'), $(this).val())");
   $firstForm.attr("name", "movename0a");
+  $('#id_sect').attr("name","secta")
   openSubforms($firstForm.parent().attr('data-formnum'), $firstForm.parent().attr('data-formlet'), $firstForm.val());
 } );
 // currently doesn't support back button to multiple forms
@@ -38,7 +39,7 @@ function addForm(){
   $newForm.find('#id_movename').attr("name", "movename" + formCount + formlet); // update 'name' of movename dropdown with appropriate form number
   $newForm.find('.babyform').attr("id", "subform" + formCount + formlet); // change id of baby
   $newForm.find('.babyform').html(""); // clear baby
-  $('#searchform').append($newForm);
+  $('#searchform div:last').before($newForm);
 }
 
 function removeForm(){
@@ -48,11 +49,12 @@ function removeForm(){
     $allForms[$allForms.length-1].remove();
 
     // if the removed form was on the border between two form letters, decrement
-      // the current letter
+      // the current letter and remove the last 'sect' form
     curLet = $allForms[$allForms.length-1].getAttribute('data-formlet');
     prevLet = $allForms[$allForms.length-2].getAttribute('data-formlet');
     if (curLet != prevLet) {
       letterCount--;
+      $('.sectform:last').remove()
       }
   }
 }
@@ -60,9 +62,10 @@ function removeForm(){
 function newAndForm(){
   // Makes a new 'and' form, i.e., begins a form of the next letter.
   letterCount++;
+  $('#searchform').append(extraforms["sect"])
+  $('.sectform:last').find('select').attr("name", "sect"+letters[letterCount])
   addForm();
-  var $allForms = $('.mamaform');
-  $allForms.eq($allForms.length-1).prepend("<p>---AND---</p>");
+  $('.mamaform:last').prepend("<p>---AND---</p>");
 }
 
 function countForms(){

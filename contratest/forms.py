@@ -9,25 +9,19 @@ def __init__(self, *args, **kwargs):
         self.fields[key].required = False
 
 class MoveForm(forms.Form):
-    # move attributes
-    movename = forms.ChoiceField(required=False, widget=forms.Select, choices=Move.MOVENAME_CHOICES)
-    # who = EmptyChoiceField(required=False, widget=forms.Select, choices=Move.WHO_CHOICES)
-    # hand = EmptyChoiceField(required=False, widget=forms.Select, choices=Move.HAND_CHOICES)
-    # dir = EmptyChoiceField(required=False, widget=forms.Select, choices=Move.DIR_CHOICES)
-    # dist = forms.DecimalField(max_digits=3, decimal_places=2, initial=None)
-    # bal = EmptyChoiceField(required=False, widget=forms.Select, choices=[(1, True), (0, False)])
-
-class DanceForm(forms.Form):
-    formation = forms.ChoiceField(required=False, widget=forms.CheckboxSelectMultiple, choices=Dance.FORMATION_CHOICES)
-    progression = forms.ChoiceField(required=False, widget=forms.CheckboxSelectMultiple, choices=[("1", "single"), ("2", "double"), ("3", "triple"), ("4", "quadruple")])
-
-class testForm(forms.Form):
     movename = EmptyChoiceField(required=False, widget=forms.Select, choices=Move.MOVENAME_CHOICES)
 
-class individualizedForm(forms.Form):
+# class DanceForm(forms.Form):
+#     formation = forms.ChoiceField(required=False, widget=forms.CheckboxSelectMultiple, choices=Dance.FORMATION_CHOICES)
+#     progression = forms.ChoiceField(required=False, widget=forms.CheckboxSelectMultiple, choices=[("1", "single"), ("2", "double"), ("3", "triple"), ("4", "quadruple")])
+
+class SectForm(forms.Form):
+    sect = EmptyChoiceField(required=False, widget=forms.Select, choices=Move.SECT_CHOICES+(("A", "A"),("B", "B")), label="Part of dance", empty_label="any")
+
+class IndividualizedForm(forms.Form):
     def __init__(self, move):
 
-        super(individualizedForm, self).__init__()
+        super(IndividualizedForm, self).__init__()
 
         if len(expected_values[move])>0:
             for attr in expected_values[move]:
@@ -53,5 +47,3 @@ def get_choices(attr):
 # search dance attributes (formation, progression, etc.)
     # --> DO I WANT TITLE/AUTHOR/TAG FILTERS ON SEARCH PG,
     # when DataTables does this so much better than i do??
-# logic about which forms/choices appear where
-# make addl choices for sect: A1, A2, B1, B2, A, B

@@ -8,12 +8,13 @@
 
     <script type="text/javascript">
         window.extraforms = {
-            {% for move, individ_form in form_list %}
             {% spaceless %}
+            {% for move, individ_form in form_list %}
             {{ move }}: '<div class="subform" id="{{ move }}", style="display:inline-block">{{ individ_form }}</div>',
-            {% endspaceless %}
             {% endfor %}
-            "": ""
+            "": "",
+            "sect": '<div class="sectform">{{sect_form}}</div>'
+            {% endspaceless %}
         };
     </script>
 
@@ -23,9 +24,10 @@
 <form action="results" method="get">
     {% csrf_token %}
     <div id="searchform">
-        <div id="form0a" class="mamaform" data-formnum="0" data-formlet="a">{{ form }}
+        <div id="form0a" class="mamaform" data-formnum="0" data-formlet="a">{{ move_form }}
             <div id="subform0a" class="babyform" style="display: inline"></div>
         </div>
+        <div class="sectform">{{ sect_form }}</div>
     </div>
     <input type="button" value="+" onclick="addForm()">
     <input type="button" value="-" onclick="removeForm()">

@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from contratest.models import Dance, Move
-from forms import MoveForm, DanceForm, testForm, individualizedForm
+from forms import MoveForm, SectForm, IndividualizedForm
 from django.db.models import Q
 from collections import defaultdict
 
@@ -11,12 +11,12 @@ def index(request):
     return render(request, 'contratest/index.html', context)
 
 def search(request):
-    form = testForm()
+    move_form = MoveForm()
+    sect_form = SectForm()
     all_moves = Move.MOVENAME_CHOICES
-    form_list = []
-    for move in all_moves:
-        form_list.append((move[0], individualizedForm(move[0])))
-    context = {'form' : form, 'form_list' : form_list}
+    form_list = [(move[0], IndividualizedForm(move[0])) for move in all_moves]
+
+    context = {'move_form' : move_form, 'sect_form' : sect_form, 'form_list' : form_list}
     return render(request, 'contratest/search.html', context)
 
 def results(request):
@@ -32,23 +32,31 @@ def results(request):
             # and'ed together (e.g. <move A followed by move B> AND <move C>)
 
     def make_nested_list(req):
-        sorted_search_terms = sorted(req.GET.items(), key=lambda kv: kv[0][-2])[:-1]
+        letters = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"]
+
+        sorted_search_terms = sorted(req.GET.items(), key=lambda kv: kv[0][-2])
         last_num = None
         last_let = None
         results = []
         for attr, val in sorted_search_terms:
-            cur_num = attr[-2]
-            cur_let = attr[-1]
-            if cur_let != last_let:
-                results.append([])
-
-            if cur_num != last_num:
-                results[-1].append({attr[:-2] : val})
+            if attr.startswith("csrf"):
+                pass
+            elif attr.startswith("sect"):
+                letter_index = letters.index(attr[-1])
+                for move_query in results[letter_index]:
+                    move_query["sect"] = val
             else:
-                results[-1][-1][attr[:-2]] = val
+                cur_num = attr[-2]
+                cur_let = attr[-1]
+                if cur_let != last_let:
+                    results.append([])
+                if cur_num != last_num:
+                    results[-1].append({attr[:-2] : val})
+                else:
+                    results[-1][-1][attr[:-2]] = val
 
-            last_num = cur_num
-            last_let = cur_let
+                last_num = cur_num
+                last_let = cur_let
         return results
 
     def pretty_print(search_list):
@@ -73,16 +81,14 @@ def results(request):
             in their dance."""
         results = []
         for move in moves_list:
-            for x in Move.objects.filter(dance__exact=move.dance).filter(seq__exact=move.seq+1):
-                results.append(x)
+            results.extend(Move.objects.filter(dance__exact=move.dance).filter(seq__exact=move.seq+1))
         return results
 
     def find_all_moves_in_dance(moves_list):
         """Given a moves list, returns a list of all moves belonging to the same dances as given moves."""
         results = []
         for move in moves_list:
-            for x in Move.objects.filter(dance__exact=move.dance):
-                results.append(x)
+            results.extend(Move.objects.filter(dance__exact=move.dance))
         return results
 
     def filter_moves_by_query(move_query, moves_list):
@@ -91,7 +97,9 @@ def results(request):
         for attr, val in move_query.iteritems():
             if val:
                 results = filter(lambda move: getattr(move, attr) == val, results)
-                # results = [move for move in results if getattr(move, attr) == val]
+                # could/should I do this with a comprehension? I suspect not,
+                    # b/c I'm filtering the list each time, so can't replace filter with
+                    # a single comprehension like you often can with filter
         return results
 
     def resolve_query_sequence(query_seq, moves_list):
@@ -128,10 +136,10 @@ def results(request):
     def find_dances(moves_list):
         """Returns a list of dances to which moves in the
             given moves_list belong (no duplicates)."""
-        result_dances = []
-        for move in moves_list:
-            result_dances.append(move.dance)
-        return list(set(result_dances))
+        return list(set([move.dance for move in moves_list]))
+
+    for thing in sorted(request.GET.items(), key=lambda kv: kv[0][-2]):
+        print thing
 
     # make nested list from GET request, format prettily for screen
     search_term_list = make_nested_list(request)
