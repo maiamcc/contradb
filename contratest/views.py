@@ -30,7 +30,6 @@ def results(request):
         # [[{"move" : "foo", "who" : "bar"}, {"move" : "baz", "hand" : "R"}],
             # [{"move" : "swing", "who" : "partner"}]] = query set -- multiple query sequences
             # and'ed together (e.g. <move A followed by move B> AND <move C>)
-
     def make_nested_list(req):
         letters = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"]
 
@@ -44,19 +43,23 @@ def results(request):
             elif attr.startswith("sect"):
                 letter_index = letters.index(attr[-1])
                 for move_query in results[letter_index]:
-                    move_query["sect"] = val
+                    if val in ["A","B"]:
+                        move_query["sect"] = [val+"1", val+"2"]
+                    else:
+                        move_query["sect"] = [val]
             else:
                 cur_num = attr[-2]
                 cur_let = attr[-1]
                 if cur_let != last_let:
                     results.append([])
                 if cur_num != last_num:
-                    results[-1].append({attr[:-2] : val})
+                    results[-1].append({attr[:-2] : [val]})
                 else:
-                    results[-1][-1][attr[:-2]] = val
+                    results[-1][-1][attr[:-2]] = [val]
 
                 last_num = cur_num
                 last_let = cur_let
+        # [[A,B], [C], [D,E]]
         return results
 
     def pretty_print(search_list):
@@ -75,6 +78,13 @@ def results(request):
                             val_text = "[any]"
                         results.append("<pre>        %s=%s</pre>" % (attr, val_text))
         return results
+
+    def is_wildcard(x):
+        """Checks if given value is a wildcard (currently, [""])."""
+        if x == [""]:
+            return True
+        else:
+            return False
 
     def find_next_moves(moves_list):
         """Given a moves list, returns a list of moves that come directly after given moves
@@ -95,12 +105,13 @@ def results(request):
         """Returns subset of a given moves list that match search terms given in the move query."""
         results = list(moves_list)
         for attr, val in move_query.iteritems():
-            if val:
-                results = filter(lambda move: getattr(move, attr) == val, results)
-                # could/should I do this with a comprehension? I suspect not,
-                    # b/c I'm filtering the list each time, so can't replace filter with
-                    # a single comprehension like you often can with filter
+            if not is_wildcard(val):
+                results = filter(lambda move: getattr(move, attr) in val, results)
         return results
+
+        # return [move for move in moves_list
+        #     if all(getattr(move, key) == val
+        #            for key, val in move_query.items() if val)]
 
     def resolve_query_sequence(query_seq, moves_list):
         """Resolves an ordered list of move queries (i.e. a list of dicts). Given a query
