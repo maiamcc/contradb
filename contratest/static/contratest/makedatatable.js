@@ -12,6 +12,8 @@ $(document).ready(function() {
       // Open this row
       row.child( "<table><tr><td>" + secrettext + "</td></tr></table>" ).show();
       $tr.addClass('shown');
+      $tr.find('.details').html("");
+      $tr.find('.details').html("HIDE");
     }
   }
 
@@ -25,6 +27,8 @@ $(document).ready(function() {
         // This row is already open - close it
         row.child.hide();
         $tr.removeClass('shown');
+        $tr.find('.details').html("");
+        $tr.find('.details').html("SHOW");
       }
     }
   }
@@ -53,21 +57,26 @@ $(document).ready(function() {
   });
 
   $('#example tbody').on('click', 'td.details', function () {
-    var tr = $(this).closest('tr');
-    var row = table.row( tr );
+    var $tr = $(this).closest('tr');
+    var row = table.row( $tr );
 
-    var id = tr.attr("data-id");
+    var id = $tr.attr("data-id");
     secrettext = window.extrainfo[id];
 
     if ( row.child.isShown() ) {
       // This row is already open - close it
       row.child.hide();
-      tr.removeClass('shown');
+      $tr.removeClass('shown');
+      $tr.find('.details').html("");
+      $tr.find('.details').html("SHOW");
+
     }
     else {
       // Open this row
       row.child( "<table><tr><td>" + secrettext + "</td></tr></table>" ).show();
-      tr.addClass('shown');
+      $tr.addClass('shown');
+      $tr.find('.details').html("");
+      $tr.find('.details').html("HIDE");
     }
   });
 });
