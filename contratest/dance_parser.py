@@ -173,13 +173,13 @@ def dist_whole_fract(input):
         return
 
 def dist_whole_text(input):
-    if input.find("once") > -1:
+    if "once" in input:
         return 4
-    elif input.find("half") > -1:
+    elif "half" in input:
         return 2
-    elif input.find("all the way") > -1:
+    elif "all the way" in input:
         return 4
-    elif input.find("1x") > -1:
+    elif "1x" in input:
         return 4
     else:
         return
@@ -212,11 +212,11 @@ def dist_dec_fract(input):
 def dist_dec_text(input):
     if re.search('once.*half', input):
         return 1.5
-    elif input.find("once") > -1:
+    elif "once" in input:
         return 1
-    elif input.find("1x") > -1:
+    elif "1x" in input:
         return 1
-    elif input.find("half") > -1:
+    elif "half" in input:
         return 0.5
     else:
         return
@@ -247,27 +247,27 @@ def parse_bal(input):
 
 # Direction
 def dir_set(input):
-    if input.find("across") > -1:
+    if "across" in input:
         return "across"
-    elif input.find("l diag") > -1:
+    elif "l diag" in input:
         return "ldiag"
-    elif input.find("ldiag") > -1:
+    elif "ldiag" in input:
         return "ldiag"
-    elif input.find("r diag") > -1:
+    elif "r diag" in input:
         return "rdiag"
-    elif input.find("rdiag") > -1:
+    elif "rdiag" in input:
         return "rdiag"
     else:
         return
 
 def dir_ring(input):
-    if input.find(" l ") > -1:
+    if " l " in input:
         return "L"
-    elif input.find("left") > -1:
+    elif "left" in input:
         return "L"
-    elif input.find(" r ") > -1:
+    elif " r " in input:
         return "R"
-    elif input.find("right") > -1:
+    elif "right" in input:
         return "R"
     else:
         return
@@ -305,7 +305,7 @@ def parse_turn_how(input):
 
 # looking for anything signifying additional info--if yes, return True
 def extra_info_symbol(input):
-    if input.find("*") > -1:
+    if "*" in input:
         return True
     else:
         # looking for parens NOT indicating counts--e.g."(1)"--
@@ -318,34 +318,40 @@ def extra_info_symbol(input):
             return False
 
 def extra_info_text(input):
-    if input.find("next") > -1:
+    if "next" in input:
         return True
-    elif input.find("new") > -1:
+    elif "new" in input:
         return True
-    elif input.find("slide") > -1:
+    elif "slide" in input:
         return True
-    elif input.find("pull") > -1:
+    elif "pull" in input:
         return True
-    elif input.find("pass thr") > -1:
+    elif "pass thr" in input:
         return True
-    elif input.find("locate") > -1:
+    elif "locate" in input:
         return True
-    elif input.find("look") > -1:
+    elif "look" in input:
         return True
-    elif input.find("prog") > -1:
+    elif "prog" in input:
         return True
-    elif input.find("same") > -1:
+    elif "same" in input:
         return True
-    elif input.find("home") > -1:
+    elif "home" in input:
         return True
 
 extra_parserlist = [extra_info_symbol, extra_info_text]
 parse_extra = one_of(extra_parserlist)
 
 # TODO ^ these are allll redundant, I should be able to do it with just 'get any'
-def get_any(move_string, dict):
+def get_any(move_string, dict, except=None, except_return_val=None):
+    """If given string contains any of the keys in the given dict., returns the
+        corresponding value. (Unless string contains the 'except' string, in which
+        case returns 'except_return_val'.)"""
     for key in dict.keys():
-        if move_string.find(key) > -1:
+        if except:
+            if except in move_string:
+                return except_return_val
+        if key in move_string:
             return dict[key]
     else:
         return
@@ -385,75 +391,78 @@ dance = make_dance(dance_list[0])
 clean_moves = clean_moves_list(dance_list[1:])
 
 sect_dict = {
-    1: "A1",
-    2: "A2",
-    3: "B1",
-    4: "B2"
+    1 : "A1",
+    2 : "A2",
+    3 : "B1",
+    4 : "B2"
 }
 
 movename_dict = {
-    "swing": "swing",
-    "b&s": "swing",
-    "gypsy": "gypsy",
-    "dsd": "dosido",
-    "dosido": "dosido",
-    "do-si-do": "dosido",
-    "alle": "allemande",
-    "turn by": "allemande",
+    "swing" : "swing",
+    "b&s" : "swing",
+    "gypsy" : "gypsy",
+    "dsd" : "dosido",
+    "dosido" : "dosido",
+    "do-si-do" : "dosido",
+    "alle" : "allemande",
+    "turn by" : "allemande",
     #"by the" is the hardest!
-    "star": "star",
-    "circle": "circle",
-    "long lines": "longlines",
-    "f&b": "longlines",
-    "ll ": "longlines",
-    "chain": "chain",
-    "down the hall": "down_hall",
-    "come back": "come_back",
-    "prom": "promenade"
+    "star" : "star",
+    "circle" : "circle",
+    "long lines" : "longlines",
+    "f&b" : "longlines",
+    "ll " : "longlines",
+    "chain" : "chain",
+    "down the hall" : "down_hall",
+    "come back" : "come_back",
+    "prom" : "promenade",
+    "mad rob" : "mad_robin",
+    "ca twirl" : "ca_twirl",
+    "cali" :  "ca_twirl"
 }
 
 bal_dict = {
-    "b&s": True,
-    "bal": True,
-    "no bal": False
+    "b&s" : True,
+    "bal" : True,
+    "no bal" : False
 }
 
 hand_dict = {
-    " l ": "L",
-    "l hand": "L",
-    "left": "L",
-    "lh": "L",
-    " r ": "R",
-    "r hand": "R",
-    "right": "R",
-    "rh": "R"
+    " l " : "L",
+    "l hand" : "L",
+    "left" : "L",
+    "lh" : "L",
+    " r " : "R",
+    "r hand" : "R",
+    "right" : "R",
+    "rh" : "R"
 }
 
 # can't be "TO PARTNER" etc...
 # maybe go thru all parsers, if find more than one then ask for clarification.
 # also what about multiple things mentioned in same move line? e.g. "half hey, ladies pass R, gents ricochet over L"
 who_dict = {
-    "ladies": "ladies",
-    "woman": "ladies",
-    "gents": "gents",
-    "men": "men",
-    " n ": "neighbor",
-    " ns ": "neighbor",
-    "neighbor": "neighbor",
-    " P ": "partner",
-    " ps ": "partner",
-    "part": "partner",
-    "shad": "shadow",
+    "ladies" : "ladies",
+    "woman" : "ladies",
+    "gents" : "gents",
+    "men" : "men",
+    " n " : "neighbor",
+    " ns " : "neighbor",
+    "neighbor" : "neighbor",
+    " P " : "partner",
+    " ps " : "partner",
+    "part" : "partner",
+    "shad" : "shadow",
 }
 
 hands_across_dict = {
-    "hands across": True,
-    "hands-across": True
+    "hands across" : True,
+    "hands-across" : True
 }
 
 turn_how_dict = {
-    "alone": "alone",
-    "couple": "couple"
+    "alone" : "alone",
+    "couple" : "couple"
 }
 
 # http://www.cotellese.net/2007/09/27/running-external-scripts-against-django-models/
