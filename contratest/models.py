@@ -13,6 +13,7 @@ class Dance(models.Model):
     progression = models.IntegerField(default=1)
     tags = models.CharField(max_length=200, blank=True)
     begins = models.CharField(max_length=200, null=True, blank=True)
+    # add notes field
 
     search_params = ["formation", "progression"]
 
@@ -88,7 +89,7 @@ class Move(models.Model):
         ("down_hall", "down the hall"),
         ("come_back", "come back"),
         ("other", "other")
-    )
+    ) # should slide left be its own move? should slide left be a true/false val that gets stuck on the beginning of a move?
 
     WHO_CHOICES = (
         ("ladies", "ladies"),
@@ -111,7 +112,8 @@ class Move(models.Model):
         ("across", "across"),
         ("ldiag", "left diagonal"),
         ("rdiag", "right diagonal")
-    )
+    ) # should i make one choice that is "not across"?
+    # default value for chain is across... is this explicit somewhere?
 
     DIR_CHOICES = dir_ring_choices + dir_set_choices
 
@@ -145,9 +147,12 @@ class Move(models.Model):
         ("full", "full")
     )
 
-    WAVE_LENGTH_CHOICES = (
+    WAVE_TYPE_CHOICES = (
         ("short", "short"),
-        ("long", "long")
+        ("long", "long"),
+        ("ladies", "ladies"),
+        ("gents", "gents")
+        # should ladies/gents be 'who' instead??
     )
 
     TURN_HOW_CHOICES = (
@@ -181,11 +186,11 @@ class Move(models.Model):
         default="", blank=True)
     hey_length = models.CharField(max_length=50, choices=HEY_LENGTH_CHOICES,
         default="", blank=True)
-    wave_length = models.CharField(max_length=50, choices=WAVE_LENGTH_CHOICES,
+    wave_type = models.CharField(max_length=50, choices=WAVE_TYPE_CHOICES,
         default="", blank=True)
     turn_how = models.CharField(max_length=50, choices=TURN_HOW_CHOICES,
         default="", blank=True)
-
+    # slide left bool???
     params = ["dance", "seq", "sect", "movename", "who", "hand", "dist", "dir", "bal", "count", "moreinfo", "beginning_info", "hands_across", "hey_length", "ricochet", "rollaway", "turn_how"]
 
     def __unicode__(self):
@@ -221,11 +226,14 @@ class Move(models.Model):
             return "balance the ring and spin to the right"
         elif self.movename == "pass_ocean":
             return "pass the ocean"
+            # and balance??!!
         elif self.movename == "yearn":
             return "yearn"
         elif self.movename == "wave":
-            return "in a %s wave, balance" % self.wave_length
+            return "in a %s wave, balance" % self.wave_type
             # IS THIS THE BEST WAY TO STRUCTURE THIS??^
+            # breaks down if it's a gents'/ladies' wave
+            # maybe a "balance the wave" move instead?
         elif self.movename == "give_take":
             return "give and take"
         elif self.movename == "promenade":
@@ -275,7 +283,7 @@ expected_values = {
     "petronella": [],
     "pass_ocean": [],
     "yearn": [],
-    "wave": ["wave_length"],
+    "wave": ["wave_type"],
     "give_take": [],
     "promenade": ["dir"],
     "down_hall": [],

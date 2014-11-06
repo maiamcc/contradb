@@ -11,6 +11,7 @@ def parse_dance(filename):
     dance.save()
     clean_moves = clean_moves_list(dance_list[1:])
     make_all_moves(clean_moves, dance)
+    # when add 'notes' field to dance object, how parse notes?
 
 def file_to_string(filename):
     """Reads a text file containing a dance."""
@@ -398,7 +399,8 @@ movename_dict = {
     "dosido": "dosido",
     "do-si-do": "dosido",
     "alle": "allemande",
-    "turn by": "allemande", #this is the hardest!
+    "turn by": "allemande",
+    #"by the" is the hardest!
     "star": "star",
     "circle": "circle",
     "long lines": "longlines",
@@ -428,6 +430,7 @@ hand_dict = {
 }
 
 # can't be "TO PARTNER" etc...
+# maybe go thru all parsers, if find more than one then ask for clarification.
 # also what about multiple things mentioned in same move line? e.g. "half hey, ladies pass R, gents ricochet over L"
 who_dict = {
     "ladies": "ladies",
