@@ -230,16 +230,16 @@ class Move(models.Model):
             return self.moreinfo
         else:
             return self.print_if("beginning_info", "%s ") + \
-                self.print_if("progress", "%s to " % self.progress_readable[self.progress]) + \
+                self.print_if("progress", "%s to " % Move.progress_readable[self.progress]) + \
                 self.print_specific() + self.print_moreinfo() + self.print_count()
 
     def print_specific(self):
         if self.movename == "swing":
-            return "%s%s swing" % (self.who, self.print_if("bal", " balance and", except_for="0"))
+            return "%s%s swing" % (self.who, self.print_if("bal", " balance and"))
         elif self.movename == "circle":
             return "circle %s %s places" % (self.dir, self.dist)
         elif self.movename == "star":
-            return "%sstar %s %s places" % (self.print_if("hands_across", "hands across ", except_for="0"), self.hand, self.dist)
+            return "%sstar %s %s places" % (self.print_if("hands_across", "hands across "), self.hand, self.dist)
         elif self.movename == "dosido":
             return "%s do-si-do" % self.who + self.print_if("dist", " %sx")
         elif self.movename == "chain":
@@ -263,7 +263,7 @@ class Move(models.Model):
         elif self.movename == "yearn":
             return "yearn"
         elif self.movename == "bal_wave":
-            return "balance the wave" + self.print_if("bal_dir", " %s" % self.bal_dir_choices_readable[self.bal_dir])
+            return "balance the wave" + self.print_if("bal_dir", " %s" % Move.bal_dir_choices_readable[self.bal_dir])
         elif self.movename == "give_take":
             return "give and take"
             # should this have a "who" (e.g. with neighbor), a "which side", etc?
@@ -277,7 +277,7 @@ class Move(models.Model):
         elif self.movename == "mad_robin":
             return "mad robin around %s" % self.who + self.print_if("dist", " %sx")
         elif self.movename == "ca_twirl":
-            return self.print_if("bal", "balance the ring and ") + "CA twirl" + self.print_if("who", " %s")
+            return self.print_if("bal", "balance the ring and ") + "CA twirl" + self.print_if("who", " %s") + self.print_only_if("bal", "0", " (no balance!)")
 
 
     #can be combined into print_if...?
@@ -295,8 +295,18 @@ class Move(models.Model):
     def print_if(self, arg, in_string=" %s", except_for=None):
         """If the given arg has a value, print it in the given string
             format (except for values given in "except_for")."""
-        if getattr(self, arg) not in [None, "", except_for, False]:
-            if in_string.find("%s") > -1:
+        if getattr(self, arg) not in [None, "", except_for, False, "0"]:
+            if "%s" in in_string:
+                return in_string % getattr(self, arg)
+            else:
+                return in_string
+        else:
+            return ""
+
+    def print_only_if(self, arg, value, in_string=" %s"):
+        """If the given arg has the given value, print it in the given string format."""
+        if getattr(self, arg) == value:
+            if "%s" in in_string:
                 return in_string % getattr(self, arg)
             else:
                 return in_string
