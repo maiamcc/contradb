@@ -209,8 +209,6 @@ class Move(models.Model):
     beginning_info = models.CharField(max_length=300, default="", blank=True)
     hands_across = models.CharField(max_length=20, choices=BOOL_CHOICES,
         default="", blank=True)
-    rollaway = models.CharField(max_length=20, choices=BOOL_CHOICES,
-        default="", blank=True)
     ricochet = models.CharField(max_length=20, choices=BOOL_CHOICES,
         default="", blank=True)
     hey_length = models.CharField(max_length=50, choices=HEY_LENGTH_CHOICES,
@@ -223,7 +221,7 @@ class Move(models.Model):
         default="", blank=True)
     progress = models.CharField(max_length=50, choices=PROGRESS_CHOICES,
         default="", blank=True)
-    params = ["dance", "seq", "sect", "movename", "who", "hand", "dist", "dir", "bal", "count", "moreinfo", "beginning_info", "hands_across", "hey_length", "ricochet", "rollaway", "turn_how", "progress"]
+    params = ["dance", "seq", "sect", "movename", "who", "hand", "dist", "dir", "bal", "count", "moreinfo", "beginning_info", "hands_across", "hey_length", "ricochet", "turn_how", "progress", "bal_dir"]
 
     def __unicode__(self):
         if self.movename == "other":
@@ -245,7 +243,7 @@ class Move(models.Model):
         elif self.movename == "chain":
             return "%s chain" % self.who
         elif self.movename == "longlines":
-            return "long lines" + self.print_if("rollaway", " with a rollaway")
+            return "long lines"
         elif self.movename == "allemande":
             return "%s allemande %s %sx" % (self.who, self.hand, self.dist)
         elif self.movename == "seesaw":
@@ -320,7 +318,7 @@ expected_values = {
     "star": ["hand", "dist", "hands_across", "progress"],
     "dosido": ["who", "dist", "progress"],
     "chain": ["who", "dir"],
-    "longlines": ["rollaway", "progress"],
+    "longlines": ["progress"],
     "allemande": ["who", "hand", "dist", "progress"],
     "seesaw": ["who", "dist", "progress"],
     "hey": ["who", "hand", "hey_length", "ricochet", "progress"],

@@ -94,12 +94,12 @@ def parser_lookup(input, attr, movename):
         else:
             return use_parser(input, parse_who, default="ladies")
     elif attr == "bal":
-        return use_parser(input, parse_bal, default=False)
+        return use_parser(input, parse_bal, default="0")
     elif attr == "dir":
         if movename != "chain":
             return use_parser(input, parse_dir, ask="What's the value of 'dir'?")
         else:
-            return use_parser(input, parse_bal, default="across")
+            return use_parser(input, parse_dir, default="across")
     elif attr == "dist":
         if movename in ["circle", "star"]:
             return use_parser(input, parse_dist_whole, ask="What's the value of 'dist'? Please input in whole number of places, e.g. 'circle L 3/4' --> '3'.)")
@@ -110,11 +110,13 @@ def parser_lookup(input, attr, movename):
     elif attr == "hand":
         return use_parser(input, parse_hand, ask="What's the value of 'hand'?")
     elif attr == "hands_across":
-        return use_parser(input, parse_hands_across, default=False)
+        return use_parser(input, parse_hands_across, default="0")
     elif attr == "turn_how":
         return use_parser(input, parse_turn_how, ask="What's the value of 'turn_how'? (Accepted values: 'alone', 'couple'.)")
     elif attr == "moreinfo":
         return raw_input("Describe this move.\n(Input was: %s)\n> " % input)
+    elif attr == "progress":
+        return "" # just for now
 
 # Making parsers
 def one_of(parsers, ask=None, default=None):
@@ -239,7 +241,7 @@ def parse_movename(input):
         return
 
 def parse_bal(input):
-    attempt = get_any(input, bal_dict)
+    attempt = get_any(input, bal_dict, except_for="no bal", except_return_val="0")
     if attempt:
         return attempt
     else:
@@ -343,13 +345,13 @@ extra_parserlist = [extra_info_symbol, extra_info_text]
 parse_extra = one_of(extra_parserlist)
 
 # TODO ^ these are allll redundant, I should be able to do it with just 'get any'
-def get_any(move_string, dict, except=None, except_return_val=None):
+def get_any(move_string, dict, except_for=None, except_return_val=None):
     """If given string contains any of the keys in the given dict., returns the
         corresponding value. (Unless string contains the 'except' string, in which
         case returns 'except_return_val'.)"""
     for key in dict.keys():
-        if except:
-            if except in move_string:
+        if except_for:
+            if except_for in move_string:
                 return except_return_val
         if key in move_string:
             return dict[key]
@@ -385,11 +387,6 @@ def get_extra_info(move_string, move):
 def ask_for_input():
     return raw_input("> ")
 
-text = file_to_string("contratest/babyrose.txt")
-dance_list = break_input(text)
-dance = make_dance(dance_list[0])
-clean_moves = clean_moves_list(dance_list[1:])
-
 sect_dict = {
     1 : "A1",
     2 : "A2",
@@ -418,13 +415,14 @@ movename_dict = {
     "prom" : "promenade",
     "mad rob" : "mad_robin",
     "ca twirl" : "ca_twirl",
-    "cali" :  "ca_twirl"
+    "cali" :  "ca_twirl",
+    "petronella" : "petronella"
+    # need to cover all var's of [bal(ance)] ring [and/&] [slide/spin] R...
 }
 
 bal_dict = {
     "b&s" : True,
     "bal" : True,
-    "no bal" : False
 }
 
 hand_dict = {
