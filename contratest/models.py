@@ -83,13 +83,14 @@ class Move(models.Model):
         ("petronella", "petronella"),
         ("pass_ocean", "pass the ocean"),
         ("yearn", "yearn"),
-        ("wave", "wave"),
+        ("bal_wave", "balance the wave"),
         ("give_take", "give and take"),
         ("promenade", "promenade"),
         ("down_hall", "down the hall"),
         ("come_back", "come back"),
+        ("mad_robin", "mad robin"),
         ("other", "other")
-    ) # should slide left be its own move? should slide left be a true/false val that gets stuck on the beginning of a move?
+    )
 
     WHO_CHOICES = (
         ("ladies", "ladies"),
@@ -108,11 +109,13 @@ class Move(models.Model):
         ("L", "left"),
         ("R", "right")
     )
+
     dir_set_choices = (
         ("across", "across"),
         ("ldiag", "left diagonal"),
-        ("rdiag", "right diagonal")
-    ) # should i make one choice that is "not across"?
+        ("rdiag", "right diagonal"),
+        ("sides", "on the sides")
+    )
     # default value for chain is across... is this explicit somewhere?
 
     DIR_CHOICES = dir_ring_choices + dir_set_choices
@@ -147,18 +150,44 @@ class Move(models.Model):
         ("full", "full")
     )
 
-    WAVE_TYPE_CHOICES = (
-        ("short", "short"),
-        ("long", "long"),
-        ("ladies", "ladies"),
-        ("gents", "gents")
-        # should ladies/gents be 'who' instead??
+    # WAVE_TYPE_CHOICES = (
+    #     ("short", "short"),
+    #     ("long", "long"),
+    #     ("ladies", "ladies"),
+    #     ("gents", "gents")
+    #     # should ladies/gents be 'who' instead??
+    # )
+
+    BAL_DIR_CHOICES = (
+        ("RL", "right, then left"),
+        ("LR", "left, then right"),
+        ("fwd_back", "forward and back")
     )
+
+    bal_dir_choices_readable = {
+        "RL" : "right, then left",
+        "LR" : "left, then right",
+        "fwd_back" : "forward and back",
+        "" : ""
+    }
 
     TURN_HOW_CHOICES = (
         ("alone", "alone"),
         ("couple", "as a couple")
     )
+
+    PROGRESS_CHOICES = (
+        ("pass_thru", "pass through"),
+        ("slide_left", "slide left"),
+        ("slide_right", "slide right")
+    )
+
+    progress_readable = {
+        "pass_thru" : "pass through",
+        "slide_left" : "slide left",
+        "slide_right" : "slide right",
+        "" : "" #this is hacky
+    }
 
     dance = models.ForeignKey(Dance)
     seq = models.IntegerField(null=True) # how do i increment?
@@ -186,18 +215,23 @@ class Move(models.Model):
         default="", blank=True)
     hey_length = models.CharField(max_length=50, choices=HEY_LENGTH_CHOICES,
         default="", blank=True)
-    wave_type = models.CharField(max_length=50, choices=WAVE_TYPE_CHOICES,
+    bal_dir = models.CharField(max_length=50, choices=BAL_DIR_CHOICES,
         default="", blank=True)
+    # wave_type = models.CharField(max_length=50, choices=WAVE_TYPE_CHOICES,
+    #     default="", blank=True)
     turn_how = models.CharField(max_length=50, choices=TURN_HOW_CHOICES,
         default="", blank=True)
-    # slide left bool???
-    params = ["dance", "seq", "sect", "movename", "who", "hand", "dist", "dir", "bal", "count", "moreinfo", "beginning_info", "hands_across", "hey_length", "ricochet", "rollaway", "turn_how"]
+    progress = models.CharField(max_length=50, choices=PROGRESS_CHOICES,
+        default="", blank=True)
+    params = ["dance", "seq", "sect", "movename", "who", "hand", "dist", "dir", "bal", "count", "moreinfo", "beginning_info", "hands_across", "hey_length", "ricochet", "rollaway", "turn_how", "progress"]
 
     def __unicode__(self):
         if self.movename == "other":
             return self.moreinfo
         else:
-            return self.print_if("beginning_info", "%s ") + self.print_specific() + self.print_moreinfo() + self.print_count()
+            return self.print_if("beginning_info", "%s ") + \
+                self.print_if("progress", "%s to " % self.progress_readable[self.progress]) + \
+                self.print_specific() + self.print_moreinfo() + self.print_count()
 
     def print_specific(self):
         if self.movename == "swing":
@@ -226,16 +260,13 @@ class Move(models.Model):
             return "balance the ring and spin to the right"
         elif self.movename == "pass_ocean":
             return "pass the ocean"
-            # and balance??!!
         elif self.movename == "yearn":
             return "yearn"
-        elif self.movename == "wave":
-            return "in a %s wave, balance" % self.wave_type
-            # IS THIS THE BEST WAY TO STRUCTURE THIS??^
-            # breaks down if it's a gents'/ladies' wave
-            # maybe a "balance the wave" move instead?
+        elif self.movename == "bal_wave":
+            return "balance the wave" + self.print_if("bal_dir", " %s" % self.bal_dir_choices_readable[self.bal_dir])
         elif self.movename == "give_take":
             return "give and take"
+            # should this have a "who" (e.g. with neighbor), a "which side", etc?
         elif self.movename == "promenade":
             return "promenade" + self.print_if("dir")
         elif self.movename == "down_hall":
@@ -243,6 +274,11 @@ class Move(models.Model):
         elif self.movename == "come_back":
             return "turn %s and come back" % self.turn_how
             # TODO: fix this print method
+        elif self.movename == "mad_robin":
+            return "mad robin around %s" % self.who + self.print_if("dist", " %sx")
+        elif self.movename == "ca_twirl":
+            return self.print_if("bal", "balance the ring and ") + "CA twirl" + self.print_if("who", " %s")
+
 
     #can be combined into print_if...?
     def print_moreinfo(self):
@@ -269,24 +305,26 @@ class Move(models.Model):
 
 # list of what values each move expects
 expected_values = {
-    "swing": ["who", "bal"],
-    "circle": ["dir", "dist"],
-    "star": ["hand", "dist", "hands_across"],
-    "dosido": ["who", "dist"],
+    "swing": ["who", "bal", "progress"],
+    "circle": ["dir", "dist", "progress"],
+    "star": ["hand", "dist", "hands_across", "progress"],
+    "dosido": ["who", "dist", "progress"],
     "chain": ["who", "dir"],
-    "longlines": ["rollaway"],
-    "allemande": ["who", "hand", "dist"],
-    "seesaw": ["who", "dist"],
-    "hey": ["who", "hand", "hey_length", "ricochet"],
-    "gypsy": ["who", "hand", "dist"],
+    "longlines": ["rollaway", "progress"],
+    "allemande": ["who", "hand", "dist", "progress"],
+    "seesaw": ["who", "dist", "progress"],
+    "hey": ["who", "hand", "hey_length", "ricochet", "progress"],
+    "gypsy": ["who", "hand", "dist", "progress"],
     "rlthru": ["dir"],
-    "petronella": [],
+    "petronella": ["progress"],
     "pass_ocean": [],
     "yearn": [],
-    "wave": ["wave_type"],
-    "give_take": [],
+    "bal_wave": ["bal_dir"],
+    "give_take": ["progress"],
     "promenade": ["dir"],
     "down_hall": [],
     "come_back": ["turn_how"],
+    "mad_robin": ["who", "dist", "progress"],
+    "ca_twirl": ["who", "bal"],
     "other": ["moreinfo"]
 }
